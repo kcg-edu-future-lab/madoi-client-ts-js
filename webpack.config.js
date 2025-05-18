@@ -1,7 +1,7 @@
 module.exports = {
   // development or production
   mode: 'development',
-  entry: './src/madoi.ts',
+  entry: './src/index.ts',
   module: {
     rules: [
       {
