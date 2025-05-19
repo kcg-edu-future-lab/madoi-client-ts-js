@@ -394,3 +394,4 @@ export declare class Madoi extends TypedEventTarget<Madoi, {
     private applyInvocation;
 }
 export {};
+//# sourceMappingURL=madoi.d.ts.map

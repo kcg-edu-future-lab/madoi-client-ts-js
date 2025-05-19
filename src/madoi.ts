@@ -898,7 +898,7 @@ export class Madoi extends TypedEventTarget<Madoi, {
 		this.removeEventListener(type as any, listener as EventListener);
 	}
 
-	private replacer(key: any, value: any) {
+	private replacer(_: any, value: any) {
 		if (value instanceof Map) {
 			return Object.fromEntries(value);
 		} else {
