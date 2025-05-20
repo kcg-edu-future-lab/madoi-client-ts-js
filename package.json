@@ -33,7 +33,13 @@
     "type": "git",
     "url": "git+https://github.com/kcg-edu-future-lab/madoi-client-ts-js.git"
   },
-  "keywords": [],
+  "keywords": [
+    "javascript",
+    "typescript",
+    "websocket",
+    "distributed sharing",
+    "madoi"
+  ],
   "author": "",
   "license": "Apache-2.0",
   "bugs": {
