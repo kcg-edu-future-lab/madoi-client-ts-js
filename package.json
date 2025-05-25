@@ -14,15 +14,15 @@
   },
   "type": "module",
   "files": [
-    "dist/madoi.es.js",
-    "dist/madoi.umd.js",
-    "types/madoi.d.ts",
-    "types/madoi.d.ts.map",
+    "dist",
+    "src",
+    "types",
     "LICENSE",
     "package-lock.json",
     "package.json",
     "README.md",
-    "tsconfig.json"
+    "tsconfig.json",
+    "vite.config.ts"
   ],
   "scripts": {
     "build": "tsc && vite build",
