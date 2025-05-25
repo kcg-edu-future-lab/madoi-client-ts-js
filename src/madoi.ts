@@ -319,7 +319,7 @@ export interface TypedCustomEvent<T extends EventTarget, D> extends CustomEvent<
 	detail: D;
 }
 export interface TypedEventListener<T extends EventTarget, D>{
-    (evt: TypedCustomEvent<T, D>): void;
+    (this: T, evt: TypedCustomEvent<T, D>): void;
 }
 export interface TypedEventListenerObject<T extends EventTarget, D>{
     handleEvent(evt: TypedCustomEvent<T, D>): void;
