@@ -5,8 +5,8 @@ export default defineConfig({
     lib: {
       entry: './src/madoi.ts',
       name: 'madoi',
-      formats: ["es", "umd"],
-      fileName: (format) => `madoi.${format}.js`,      
+      formats: ["umd"],
+      fileName: (format) => `madoi.js`,      
     },
   },
 });
