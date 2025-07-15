@@ -378,6 +378,21 @@ export function Share(config: ShareConfig = shareConfigDefault) {
 }
 
 // Decorator
+export interface NotifyConfig{
+	type?: "beforeExec" | "afterExec"
+}
+export const notifyConfigDefault: NotifyConfig = {
+	type: "beforeExec"
+};
+export function Notify(config: NotifyConfig = notifyConfigDefault) {
+	const c = {...config};
+    return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+		const mc: MethodConfig = {notify: c};
+		target[name].madoiMethodConfig_ = mc;
+    }
+}
+
+// Decorator
 export interface GetStateConfig{
 	maxInterval?: number
 	maxUpdates?: number
@@ -505,6 +520,7 @@ export function PeerProfileUpdated(config: PeerProfileUpdatedConfig = {}){
 
 export type MethodConfig = 
 	{share: ShareConfig} |
+	{notify: NotifyConfig} |
 	{hostOnly: HostOnlyConfig} |
 	{getState: GetStateConfig} |
 	{setState: SetStateConfig} |
@@ -1023,6 +1039,14 @@ export class Madoi extends TypedEventTarget<Madoi, {
 					objEntry.modification++;
 					return newf.apply(null, arguments);
 				};
+			} else if("notify" in c){
+				// @Notifyの場合はメソッドを置き換え
+				const newf = this.createMethodProxy(
+					f.bind(obj), c.notify,
+					objId, mc.methodId);
+				obj[mc.name] = function(){
+					return newf.apply(null, arguments);
+				};
 			} else if("hostOnly" in c){
 				// @HostOnlyの場合はメソッドを置き換え
 				const newf = this.addHostOnlyFunction(
@@ -1102,7 +1126,7 @@ export class Madoi extends TypedEventTarget<Madoi, {
 		};
 	}
 
-	private createMethodProxy(f: Function, config: ShareConfig, objId: number, methodId: number): Function{
+	private createMethodProxy(f: Function, config: ShareConfig | NotifyConfig, objId: number, methodId: number): Function{
 		const id = `${objId}:${methodId}`;
 		const me: MethodEntry = {original: f}
 		this.sharedMethods.set(id, me);

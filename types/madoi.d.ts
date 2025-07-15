@@ -245,6 +245,11 @@ export interface ShareConfig {
 }
 export declare const shareConfigDefault: ShareConfig;
 export declare function Share(config?: ShareConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export interface NotifyConfig {
+    type?: "beforeExec" | "afterExec";
+}
+export declare const notifyConfigDefault: NotifyConfig;
+export declare function Notify(config?: NotifyConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface GetStateConfig {
     maxInterval?: number;
     maxUpdates?: number;
@@ -283,6 +288,8 @@ export interface PeerProfileUpdatedConfig {
 export declare function PeerProfileUpdated(config?: PeerProfileUpdatedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export type MethodConfig = {
     share: ShareConfig;
+} | {
+    notify: NotifyConfig;
 } | {
     hostOnly: HostOnlyConfig;
 } | {
