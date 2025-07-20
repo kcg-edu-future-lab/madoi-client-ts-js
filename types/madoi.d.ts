@@ -1,3 +1,4 @@
+import { TypedCustomEventListenerOrObject, TypedCustomEventTarget } from "tcet";
 export type CastType = "UNICAST" | "MULTICAST" | "BROADCAST" | "SELFCAST" | "OTHERCAST" | "PEERTOSERVER" | "SERVERTOPEER";
 export interface Message {
     type: string;
@@ -175,61 +176,6 @@ export interface UserMessage extends Message {
 export type UpstreamMessageType = Ping | EnterRoom | LeaveRoom | UpdateRoomProfile | UpdatePeerProfile | DefineFunction | DefineObject | InvokeFunction | UpdateObjectState | InvokeMethod;
 export type DownStreamMessageType = Pong | EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile | PeerEntered | PeerLeaved | UpdatePeerProfile | InvokeFunction | UpdateObjectState | InvokeMethod | UserMessage;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
-export interface EnterRoomAllowedDetail {
-    room: RoomInfo;
-    selfPeer: PeerInfo;
-    otherPeers: PeerInfo[];
-}
-export interface EnterRoomDeniedDetail {
-    message: string;
-}
-export interface LeaveRoomDoneDetail {
-}
-export interface RoomProfileUpdatedDetail {
-    updates?: {
-        [key: string]: any;
-    };
-    deletes?: string[];
-}
-export interface PeerEnteredDetail {
-    peer: PeerInfo;
-}
-export interface PeerLeavedDetail {
-    peerId: string;
-}
-export interface PeerProfileUpdatedDetail {
-    peerId: string;
-    updates?: {
-        [key: string]: any;
-    };
-    deletes?: string[];
-}
-export interface UserMessageDetail<T> {
-    type: string;
-    sender?: string;
-    castType?: CastType;
-    recipients?: string[];
-    content: T;
-}
-interface ErrorDetail {
-    error: any;
-}
-export interface TypedCustomEvent<T extends EventTarget, D> extends CustomEvent<D> {
-    currentTarget: T;
-    detail: D;
-}
-export interface TypedEventListener<T extends EventTarget, D> {
-    (this: T, evt: TypedCustomEvent<T, D>): void;
-}
-export interface TypedEventListenerObject<T extends EventTarget, D> {
-    handleEvent(evt: TypedCustomEvent<T, D>): void;
-}
-export type TypedEventListenerOrEventListenerObject<T extends EventTarget, D> = TypedEventListener<T, D> | TypedEventListenerObject<T, D>;
-export declare class TypedEventTarget<T extends TypedEventTarget<T, Events>, Events extends Record<string, any>> extends EventTarget {
-    addEventListener<K extends keyof Events>(type: K, listener: TypedEventListenerOrEventListenerObject<T, Events[K]> | null, options?: AddEventListenerOptions | boolean): void;
-    removeEventListener<K extends keyof Events>(type: K, listener: TypedEventListenerOrEventListenerObject<T, Events[K]> | null, options?: EventListenerOptions | boolean): void;
-    dispatchCustomEvent<K extends keyof Events>(type: K, detail?: Events[K]): boolean;
-}
 export declare function ShareClass(config?: {
     className?: string;
 }): (target: any) => void;
@@ -316,8 +262,47 @@ export type MethodConfig = {
 export type MethodAndConfigParam = {
     method: Function;
 } & MethodConfig;
-export type UserMessageListener<T extends EventTarget, D> = TypedEventListenerOrEventListenerObject<T, UserMessageDetail<D>> | null;
-export declare class Madoi extends TypedEventTarget<Madoi, {
+export interface EnterRoomAllowedDetail {
+    room: RoomInfo;
+    selfPeer: PeerInfo;
+    otherPeers: PeerInfo[];
+}
+export interface EnterRoomDeniedDetail {
+    message: string;
+}
+export interface LeaveRoomDoneDetail {
+}
+export interface RoomProfileUpdatedDetail {
+    updates?: {
+        [key: string]: any;
+    };
+    deletes?: string[];
+}
+export interface PeerEnteredDetail {
+    peer: PeerInfo;
+}
+export interface PeerLeavedDetail {
+    peerId: string;
+}
+export interface PeerProfileUpdatedDetail {
+    peerId: string;
+    updates?: {
+        [key: string]: any;
+    };
+    deletes?: string[];
+}
+export interface UserMessageDetail<T> {
+    type: string;
+    sender?: string;
+    castType?: CastType;
+    recipients?: string[];
+    content: T;
+}
+interface ErrorDetail {
+    error: any;
+}
+export type UserMessageListener<T extends TypedCustomEventTarget<T, any>, D> = TypedCustomEventListenerOrObject<T, UserMessageDetail<D>> | null;
+export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail;
     enterRoomDenied: EnterRoomDeniedDetail;
     leaveRoomDone: LeaveRoomDoneDetail;
