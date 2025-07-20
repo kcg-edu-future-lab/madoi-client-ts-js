@@ -50,5 +50,7 @@
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   },
-  "dependencies": {}
+  "dependencies": {
+    "tcet": "^1.0.1"
+  }
 }
