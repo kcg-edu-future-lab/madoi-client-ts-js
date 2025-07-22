@@ -6,6 +6,9 @@ A TypeScript/JavaScript Client library for <a href="https://github.com/kcg-edu-f
 
 Reactと組み合わせて使う場合は <a href="https://github.com/kcg-edu-future-lab/madoi-client-react">madoi-react</a> も参照してください。
 
+[![Current Release](https://img.shields.io/npm/v/madoi-client.svg)](https://www.npmjs.com/package/madoi-client)
+[![Licence](https://img.shields.io/github/license/kcg-edu-future-lab/madoi-client-ts-js.svg)](https://github.com/kcg-edu-future-lab/madoi-client-ts-js/blob/master/LICENSE)
+
 ## Install
 
 ```bash
