@@ -524,7 +524,8 @@ interface ErrorDetail{
 	error: any;
 }
 
-export type UserMessageListener<T extends TypedCustomEventTarget<T, any>, D> = TypedCustomEventListenerOrObject<T, UserMessageDetail<D>> | null;
+export type UserMessageListener<D> =
+	TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 
 export class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail,
@@ -757,7 +758,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const id = `${msg.funcId}`;
 			const f = this.sharedFunctions.get(id);
 			if(f){
-                const ret = this.applyInvocation(f.original, msg.args);
+                const ret = this.applyInvocation(f.original, [...msg.args, this.currentSender, this]);
                 if(ret instanceof Promise){
                     ret.then(()=>{
                        f.resolve?.apply(null, arguments);
@@ -784,7 +785,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const id = `${msg.objId}:${msg.methodId}`;
 			const m = this.sharedMethods.get(id);
 			if(m?.original){
-                const ret = this.applyInvocation(m.original, msg.args);
+                const ret = this.applyInvocation(m.original, [...msg.args, this.currentSender, this]);
                 if(ret instanceof Promise){
                     ret.then(()=>{
                         m.resolve?.apply(null, arguments);
@@ -872,13 +873,13 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			throw new Error("システムメッセージは送信できません。");
 		this.doSendMessage(msg);
 	}
-	addReceiver<T>(type: string, listener: UserMessageListener<Madoi, T>){
+	addReceiver<D>(type: string, listener: UserMessageListener<D>){
 		if(this.isSystemMessageType(type))
 			throw new Error("システムメッセージのレシーバは登録できません。");
 		this.addEventListener(type as any, listener as EventListener);
 	}
 
-	removeReceiver<T>(type: string, listener: UserMessageListener<Madoi, T>){
+	removeReceiver<D>(type: string, listener: UserMessageListener<D>){
 		this.removeEventListener(type as any, listener as EventListener);
 	}
 
