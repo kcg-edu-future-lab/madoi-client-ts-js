@@ -243,10 +243,11 @@ export function newUpdateObjectState(body: UpdateObjectStateBody): UpdateObjectS
     };
 }
 export interface InvokeMethodBody{
-	objId?: number;
-	objRevision?: number;  // メソッド実行前のリビジョン
+	objId: number;
+	objRevision: number;  // メソッド実行前のクライアントのオブジェクトリビジョン
 	methodId: number;
 	args: any[];
+	serverObjRevision?: number; // サーバー側のオブジェクトリビジョン
 }
 export interface InvokeMethod extends BroadcastOrOthercastMessage, InvokeMethodBody{
 	type: "InvokeMethod";
@@ -256,7 +257,7 @@ export function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: Invok
         type: "InvokeMethod",
 		castType: castType,
 		...broadcastOrOthercastMessageDefault,
-        ...body,
+		...body
 	};
 }
 
@@ -758,15 +759,15 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const id = `${msg.funcId}`;
 			const f = this.sharedFunctions.get(id);
 			if(f){
-                const ret = this.applyInvocation(f.original, [...msg.args, this.currentSender, this]);
-                if(ret instanceof Promise){
-                    ret.then(()=>{
-                       f.resolve?.apply(null, arguments);
-                    }).catch(()=>{
-                       f.reject?.apply(null, arguments);
-                    });
-                }
-            } else {
+				const ret = this.applyInvocation(f.original, msg.args);
+				if(ret instanceof Promise){
+					ret.then(()=>{
+						f.resolve?.apply(null, arguments);
+					}).catch(()=>{
+						f.reject?.apply(null, arguments);
+					});
+				}
+			} else {
 				console.warn("no suitable function for ", msg);
 			}
 		} else if(msg.type === "UpdateObjectState"){
@@ -776,25 +777,29 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			if(o) o.revision = msg.objRevision;
 		} else if(msg.type === "InvokeMethod"){
 			if(msg.objId !== undefined){
-				// check consistency?
 				const o = this.sharedObjects.get(msg.objId);
 				if(o !== undefined){
-					o.revision++;
+					if(o.revision + 1 !== msg.serverObjRevision){
+						console.error(`Found inconsistency. serverObjRevision must be ${o.revision + 1} but ${msg.serverObjRevision}.`, msg);
+					}
+					o.revision = msg.serverObjRevision;
+				} else{
+					console.error(`Found inconsistency. Object not found for id: ${msg.objId}.`, msg);
 				}
 			}
 			const id = `${msg.objId}:${msg.methodId}`;
 			const m = this.sharedMethods.get(id);
 			if(m?.original){
-                const ret = this.applyInvocation(m.original, [...msg.args, this.currentSender, this]);
-                if(ret instanceof Promise){
-                    ret.then(()=>{
-                        m.resolve?.apply(null, arguments);
-                    }).catch(()=>{
-                        m.reject?.apply(null, arguments);
-                    });
-                }
-            } else {
-				console.warn("no suitable method for ", msg);
+				const ret = this.applyInvocation(m.original, msg.args);
+				if(ret instanceof Promise){
+					ret.then(()=>{
+						m.resolve?.apply(null, arguments);
+					}).catch(()=>{
+						m.reject?.apply(null, arguments);
+					});
+				}
+			} else {
+				console.error("no suitable method for ", msg);
 			}
 		} else if(msg.type){
 			this.dispatchEvent(new CustomEvent(msg.type, {detail: msg}));
@@ -1117,9 +1122,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				self.sendMessage(newInvokeMethod(
 					castType, {
 						objId: objId,
-						objRevision: self.sharedObjects.get(objId)?.revision,
+						objRevision: self.sharedObjects.get(objId)!.revision,
 						methodId: methodId,
-						args: Array.from(arguments)
+						args: Array.from(arguments),
 					}
 				));
 				return (ret != null) ? ret : me.promise;
