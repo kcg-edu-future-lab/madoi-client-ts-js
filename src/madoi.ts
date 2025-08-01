@@ -971,6 +971,8 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			if("share" in c){ // デフォルト値チェック
 				if(!c.share.type) c.share.type = shareConfigDefault.type;
 				if(!c.share.maxLog) c.share.maxLog = shareConfigDefault.maxLog;
+			} else if("notify" in c){
+				if(!c.notify.type) c.notify.type = notifyConfigDefault.type;
 			} else if("hostOnly" in c){
 			} else if("getState" in c){
 				if(!c.getState.maxInterval) c.getState.maxInterval = getStateConfigDefault.maxInterval;

@@ -161,10 +161,11 @@ export interface UpdateObjectState extends PeerToServerMessage {
 }
 export declare function newUpdateObjectState(body: UpdateObjectStateBody): UpdateObjectState;
 export interface InvokeMethodBody {
-    objId?: number;
-    objRevision?: number;
+    objId: number;
+    objRevision: number;
     methodId: number;
     args: any[];
+    serverObjRevision?: number;
 }
 export interface InvokeMethod extends BroadcastOrOthercastMessage, InvokeMethodBody {
     type: "InvokeMethod";
@@ -301,7 +302,7 @@ export interface UserMessageDetail<T> {
 interface ErrorDetail {
     error: any;
 }
-export type UserMessageListener<T extends TypedCustomEventTarget<T, any>, D> = TypedCustomEventListenerOrObject<T, UserMessageDetail<D>> | null;
+export type UserMessageListener<D> = TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail;
     enterRoomDenied: EnterRoomDeniedDetail;
@@ -373,8 +374,8 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     broadcast(type: string, content: any): void;
     othercast(type: string, content: any): void;
     sendMessage(msg: Message): void;
-    addReceiver<T>(type: string, listener: UserMessageListener<Madoi, T>): void;
-    removeReceiver<T>(type: string, listener: UserMessageListener<Madoi, T>): void;
+    addReceiver<D>(type: string, listener: UserMessageListener<D>): void;
+    removeReceiver<D>(type: string, listener: UserMessageListener<D>): void;
     private replacer;
     private doSendMessage;
     registerFunction<T extends Function>(func: T, config?: MethodConfig): T;
