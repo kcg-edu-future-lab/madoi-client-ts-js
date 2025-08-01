@@ -630,6 +630,11 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		this.sendMessage(newUpdatePeerProfile(
 			{updates: m}
 		));
+		const v: PeerProfileUpdatedDetail = {updates: m, peerId: this.selfPeer.id};
+		for(const [_, f] of this.peerProfileUpdatedMethods){
+			f(v, this);
+		}
+		this.dispatchCustomEvent("peerProfileUpdated", v);
 	}
 
 	removeSelfPeerProfile(name: string){
@@ -637,6 +642,11 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		this.sendMessage(newUpdatePeerProfile(
 			{deletes: [name]}
 		));
+		const v: PeerProfileUpdatedDetail = {deletes: [name], peerId: this.selfPeer.id};
+		for(const [_, f] of this.peerProfileUpdatedMethods){
+			f(v, this);
+		}
+		this.dispatchCustomEvent("peerProfileUpdated", v);
 	}
 
 	getCurrentSender(){
