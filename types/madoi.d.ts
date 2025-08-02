@@ -315,9 +315,9 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
 }> {
     private connecting;
     private interimQueue;
-    private sharedFunctions;
-    private sharedObjects;
-    private sharedMethods;
+    private shareOrNotifyFunctions;
+    private shareObjects;
+    private shareOrNotifyMethods;
     private getStateMethods;
     private setStateMethods;
     private beforeEnterRoomMethods;

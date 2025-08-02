@@ -475,9 +475,11 @@ interface FunctionEntry {
 	resolve?: Function;
 	reject?: Function;
 	original: Function;
+	config: {share?: ShareConfig, notify?: NotifyConfig};
 }
+type MadoiObject = {[key: string]: any, madoiClassConfig_: {className?: string}, madoiObjectId_: number};
 interface ObjectEntry {
-	instance: any;
+	instance: MadoiObject;
 	modification: number;
 	revision: number;
 }
@@ -486,6 +488,7 @@ interface MethodEntry {
 	resolve?: Function;
 	reject?: Function;
 	original: Function;
+	config: {share?: ShareConfig, notify?: NotifyConfig};
 }
 
 //---- events ----
@@ -542,9 +545,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	private interimQueue: Array<object>;
 
-	private sharedFunctions = new Map<string, FunctionEntry>();
-	private sharedObjects = new Map<number, ObjectEntry>();
-	private sharedMethods = new Map<string, MethodEntry>();
+	private shareOrNotifyFunctions = new Map<string, FunctionEntry>();
+	private shareObjects = new Map<number, ObjectEntry>();
+	private shareOrNotifyMethods = new Map<string, MethodEntry>();
 
 	// annotated methods
 	private getStateMethods = new Map<number, {method: (madoi: Madoi)=>any, config: GetStateConfig, lastGet: number}>();
@@ -767,49 +770,49 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}
 		} else if(msg.type === "InvokeFunction"){
 			const id = `${msg.funcId}`;
-			const f = this.sharedFunctions.get(id);
-			if(f){
-				const ret = this.applyInvocation(f.original, msg.args);
-				if(ret instanceof Promise){
-					ret.then(()=>{
-						f.resolve?.apply(null, arguments);
-					}).catch(()=>{
-						f.reject?.apply(null, arguments);
-					});
-				}
-			} else {
+			const f = this.shareOrNotifyFunctions.get(id);
+			if(f === undefined){
 				console.warn("no suitable function for ", msg);
+				return;
+			}
+			const ret = this.applyInvocation(f.original, msg.args);
+			if(ret instanceof Promise){
+				ret.then(()=>{
+					f.resolve?.apply(null, arguments);
+				}).catch(()=>{
+					f.reject?.apply(null, arguments);
+				});
 			}
 		} else if(msg.type === "UpdateObjectState"){
 			const f = this.setStateMethods.get(msg.objId);
 			if(f) f(msg.state, msg.objRevision);
-			const o = this.sharedObjects.get(msg.objId);
+			const o = this.shareObjects.get(msg.objId);
 			if(o) o.revision = msg.objRevision;
 		} else if(msg.type === "InvokeMethod"){
-			if(msg.objId !== undefined){
-				const o = this.sharedObjects.get(msg.objId);
-				if(o !== undefined){
-					if(o.revision + 1 !== msg.serverObjRevision){
-						console.error(`Found inconsistency. serverObjRevision must be ${o.revision + 1} but ${msg.serverObjRevision}.`, msg);
-					}
-					o.revision = msg.serverObjRevision;
-				} else{
-					console.error(`Found inconsistency. Object not found for id: ${msg.objId}.`, msg);
-				}
+			const o = this.shareObjects.get(msg.objId);
+			if(o === undefined){
+				console.error(`Object not found for id: ${msg.objId}.`, msg);
+				return;
 			}
 			const id = `${msg.objId}:${msg.methodId}`;
-			const m = this.sharedMethods.get(id);
-			if(m?.original){
-				const ret = this.applyInvocation(m.original, msg.args);
-				if(ret instanceof Promise){
-					ret.then(()=>{
-						m.resolve?.apply(null, arguments);
-					}).catch(()=>{
-						m.reject?.apply(null, arguments);
-					});
+			const m = this.shareOrNotifyMethods.get(id);
+			if(m === undefined){
+				console.error(`Method not found for id: ${id}.`, msg);
+				return;
+			}
+			if(m.config.share){
+				if(o.revision + 1 !== msg.serverObjRevision){
+					console.error(`Found inconsistency. serverObjRevision must be ${o.revision + 1} but ${msg.serverObjRevision}.`, msg);
 				}
-			} else {
-				console.error("no suitable method for ", msg);
+				o.revision = msg.serverObjRevision;
+			}
+			const ret = this.applyInvocation(m.original, msg.args);
+			if(ret instanceof Promise){
+				ret.then(()=>{
+					m.resolve?.apply(null, arguments);
+				}).catch(()=>{
+					m.reject?.apply(null, arguments);
+				});
 			}
 		} else if(msg.type){
 			this.dispatchEvent(new CustomEvent(msg.type, {detail: msg}));
@@ -917,14 +920,32 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	registerFunction<T extends Function>(func: T, config: MethodConfig = {share: {}}): T{
 		if("hostOnly" in config){
 			return this.addHostOnlyFunction(func, config);
+		} else if("notify" in config){
+			// デフォルト値チェック
+			if(!config.notify.type) config.notify.type = notifyConfigDefault.type;
+
+			const funcName = func.name;
+			const funcId = this.shareOrNotifyFunctions.size;
+			const f = this.createFunctionProxy(func, {notify: config.notify}, funcId);
+			const ret = function(){
+				return f.apply(null, arguments);
+			} as any;
+			this.doSendMessage(newDefineFunction({
+				definition: {
+					funcId: funcId,
+					name: funcName,
+					config: config
+				}
+			}));
+			return ret;
 		} else if("share" in config){
 			// デフォルト値チェック
 			if(!config.share.type) config.share.type = shareConfigDefault.type;
 			if(!config.share.maxLog) config.share.maxLog = shareConfigDefault.maxLog;
 
 			const funcName = func.name;
-			const funcId = this.sharedFunctions.size;
-			const f = this.createFunctionProxy(func, config.share, funcId);
+			const funcId = this.shareOrNotifyFunctions.size;
+			const f = this.createFunctionProxy(func, {share: config.share}, funcId);
 			const ret = function(){
 				return f.apply(null, arguments);
 			} as any;
@@ -942,7 +963,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	register<T>(object: T, methodAndConfigs: MethodAndConfigParam[] = []): T{
 		if(!this.ws) return object;
-		const obj = object as any;
+		const obj = object as MadoiObject;
 		if(obj.madoiObjectId_){
 			console.warn("Ignore object registration because it's already registered.");
 			return object;
@@ -952,9 +973,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			className = obj.__proto__.constructor.madoiClassConfig_.className;
 		}
 		// 共有オブジェクトのidを確定
-		const objId = this.sharedObjects.size;
+		const objId = this.shareObjects.size;
 		const objEntry = {instance: obj, revision: 0, modification: 0};
-		this.sharedObjects.set(objId, objEntry);
+		this.shareObjects.set(objId, objEntry);
 		obj.madoiObjectId_ = objId;
 
 		// コンフィグを集める
@@ -981,7 +1002,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			if("share" in c){ // デフォルト値チェック
 				if(!c.share.type) c.share.type = shareConfigDefault.type;
 				if(!c.share.maxLog) c.share.maxLog = shareConfigDefault.maxLog;
-			} else if("notify" in c){
+			} else if("notify" in c){ // デフォルト値チェック
 				if(!c.notify.type) c.notify.type = notifyConfigDefault.type;
 			} else if("hostOnly" in c){
 			} else if("getState" in c){
@@ -1019,7 +1040,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				// @Shareの場合はメソッドを置き換え
 	            const newf = this.createMethodProxy(
 					f.bind(obj),
-					c.share,
+					{share: c.share},
 					objId, mc.methodId);
 				obj[mc.name] = function(){
 					objEntry.modification++;
@@ -1028,7 +1049,8 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else if("notify" in c){
 				// @Notifyの場合はメソッドを置き換え
 				const newf = this.createMethodProxy(
-					f.bind(obj), c.notify,
+					f.bind(obj),
+					{notify: c.notify},
 					objId, mc.methodId);
 				obj[mc.name] = function(){
 					return newf.apply(null, arguments);
@@ -1082,10 +1104,10 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		return object;
 	}
 
-	private createFunctionProxy(f: Function, config: ShareConfig, funcId: number): Function{
+	private createFunctionProxy(f: Function, config: {share?: ShareConfig, notify?: NotifyConfig}, funcId: number): Function{
 		const id = `${funcId}`;
-		const fe: FunctionEntry = {original: f};
-		this.sharedFunctions.set(id, fe);
+		const fe: FunctionEntry = {original: f, config};
+		this.shareOrNotifyFunctions.set(id, fe);
 		fe.promise = new Promise((resolve, reject)=>{
 			fe.resolve = resolve;
 			fe.reject = reject;
@@ -1097,7 +1119,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else{
 				let ret = null;
 				let castType: CastType = "BROADCAST";
-				if(config.type === "afterExec"){
+				if(config.share?.type === "afterExec" || config.notify?.type === "afterExec"){
 					ret = f.apply(null, arguments);
 					castType = "OTHERCAST";
 				}
@@ -1112,10 +1134,10 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		};
 	}
 
-	private createMethodProxy(f: Function, config: ShareConfig | NotifyConfig, objId: number, methodId: number): Function{
+	private createMethodProxy(f: Function, config: {share?: ShareConfig, notify?: NotifyConfig}, objId: number, methodId: number): Function{
 		const id = `${objId}:${methodId}`;
-		const me: MethodEntry = {original: f}
-		this.sharedMethods.set(id, me);
+		const me: MethodEntry = {original: f, config}
+		this.shareOrNotifyMethods.set(id, me);
 		me.promise = new Promise((resolve, reject)=>{
 			me.resolve = resolve;
 			me.reject = reject;
@@ -1127,14 +1149,14 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else{
 				let ret = null;
 				let castType: CastType = "BROADCAST";
-				if(config.type === "afterExec"){
+				if(config.share?.type === "afterExec" || config.notify?.type === "afterExec"){
 					ret = f.apply(null, [...arguments, self]);
 					castType = "OTHERCAST";
 				}
 				self.sendMessage(newInvokeMethod(
 					castType, {
 						objId: objId,
-						objRevision: self.sharedObjects.get(objId)!.revision,
+						objRevision: self.shareObjects.get(objId)!.revision,
 						methodId: methodId,
 						args: Array.from(arguments),
 					}
@@ -1161,7 +1183,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	public saveStates(){
 		if(!this.ws || !this.connecting) return;
-		for(let [objId, oe] of this.sharedObjects){
+		for(let [objId, oe] of this.shareObjects){
 			if(oe.modification == 0) continue;
 			const info = this.getStateMethods.get(objId);
 			if(!info) continue;
