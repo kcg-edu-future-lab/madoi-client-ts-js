@@ -1157,15 +1157,15 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else{
 				let ret = null;
 				let castType: CastType = "BROADCAST";
+				let objRevision = self.shareObjects.get(objId)!.revision;
 				if(config.share?.type === "afterExec" || config.notify?.type === "afterExec"){
 					ret = f.apply(null, [...arguments, self]);
+					if(config.share) objRevision++;
 					castType = "OTHERCAST";
 				}
 				self.sendMessage(newInvokeMethod(
 					castType, {
-						objId: objId,
-						objRevision: self.shareObjects.get(objId)!.revision,
-						methodId: methodId,
+						objId, objRevision, methodId,
 						args: Array.from(arguments),
 					}
 				));
