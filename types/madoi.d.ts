@@ -333,7 +333,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     private room;
     private selfPeer;
     private peers;
-    private currentSender;
+    private currentSenderId;
     constructor(roomIdOrUrl: string, authToken: string, selfPeer?: {
         id: string;
         profile: {
@@ -357,6 +357,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     };
     updateSelfPeerProfile(name: string, value: any): void;
     removeSelfPeerProfile(name: string): void;
+    isMessageProcessing(): boolean;
     getCurrentSender(): PeerInfo | null | undefined;
     isCurrentSenderSelf(): boolean;
     close(): void;
