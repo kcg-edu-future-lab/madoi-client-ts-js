@@ -566,7 +566,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	private room: RoomInfo = {id: "", spec: {maxLog: 1000}, profile: {}};
 	private selfPeer: PeerInfo = {id: "", order: -1, profile: {}};
 	private peers = new Map<string, PeerInfo>();
-	private currentSender: string | null = null;
+	private currentSenderId: string | null = null;
 
 	constructor(roomIdOrUrl: string, authToken: string,
 			selfPeer?: {id: string, profile: {[key: string]: any}},
@@ -652,13 +652,17 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		this.dispatchCustomEvent("peerProfileUpdated", v);
 	}
 
+	isMessageProcessing(){
+		return this.currentSenderId !== null;
+	}
+
 	getCurrentSender(){
-		if(!this.currentSender) return null;
-		return this.peers.get(this.currentSender);
+		if(this.currentSenderId === null) return null;
+		return this.peers.get(this.currentSenderId);
 	}
 
 	isCurrentSenderSelf(){
-		return this.currentSender === this.selfPeer.id;
+		return this.currentSenderId === this.selfPeer.id;
 	}
 
 	close(){
@@ -694,8 +698,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	private handleOnMessage(e: MessageEvent){
 		const msg = JSON.parse(e.data);
-		this.currentSender = msg.sender;
-		this.data(msg);
+		this.currentSenderId = msg.sender;
+		try{
+			this.data(msg);
+		} finally{
+			this.currentSenderId = null;
+		}
 	}
 
 	private data(msg: DownStreamMessageType){
