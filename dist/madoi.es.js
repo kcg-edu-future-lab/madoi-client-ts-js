@@ -1,6 +1,6 @@
 var C = Object.defineProperty;
 var I = (s, r, e) => r in s ? C(s, r, { enumerable: !0, configurable: !0, writable: !0, value: e }) : s[r] = e;
-var f = (s, r, e) => I(s, typeof r != "symbol" ? r + "" : r, e);
+var l = (s, r, e) => I(s, typeof r != "symbol" ? r + "" : r, e);
 class j extends EventTarget {
   dispatchCustomEvent(r, e) {
     return super.dispatchEvent(new CustomEvent(r, { detail: e }));
@@ -199,30 +199,30 @@ function Y(s = {}) {
 class Z extends j {
   constructor(e, t, o, n) {
     super();
-    f(this, "connecting", !1);
-    f(this, "interimQueue");
-    f(this, "shareOrNotifyFunctions", /* @__PURE__ */ new Map());
-    f(this, "shareObjects", /* @__PURE__ */ new Map());
-    f(this, "shareOrNotifyMethods", /* @__PURE__ */ new Map());
+    l(this, "connecting", !1);
+    l(this, "interimQueue");
+    l(this, "shareOrNotifyFunctions", /* @__PURE__ */ new Map());
+    l(this, "shareObjects", /* @__PURE__ */ new Map());
+    l(this, "shareOrNotifyMethods", /* @__PURE__ */ new Map());
     // annotated methods
-    f(this, "getStateMethods", /* @__PURE__ */ new Map());
-    f(this, "setStateMethods", /* @__PURE__ */ new Map());
+    l(this, "getStateMethods", /* @__PURE__ */ new Map());
+    l(this, "setStateMethods", /* @__PURE__ */ new Map());
     // objectId -> @SetState method
-    f(this, "beforeEnterRoomMethods", /* @__PURE__ */ new Map());
-    f(this, "enterRoomAllowedMethods", /* @__PURE__ */ new Map());
-    f(this, "enterRoomDeniedMethods", /* @__PURE__ */ new Map());
-    f(this, "leaveRoomDoneMethods", /* @__PURE__ */ new Map());
-    f(this, "roomProfileUpdatedMethods", /* @__PURE__ */ new Map());
-    f(this, "peerEnteredMethods", /* @__PURE__ */ new Map());
-    f(this, "peerLeavedMethods", /* @__PURE__ */ new Map());
-    f(this, "peerProfileUpdatedMethods", /* @__PURE__ */ new Map());
-    f(this, "url");
-    f(this, "ws", null);
-    f(this, "room", { id: "", spec: { maxLog: 1e3 }, profile: {} });
-    f(this, "selfPeer", { id: "", order: -1, profile: {} });
-    f(this, "peers", /* @__PURE__ */ new Map());
-    f(this, "currentSenderId", null);
-    f(this, "systemMessageTypes", [
+    l(this, "beforeEnterRoomMethods", /* @__PURE__ */ new Map());
+    l(this, "enterRoomAllowedMethods", /* @__PURE__ */ new Map());
+    l(this, "enterRoomDeniedMethods", /* @__PURE__ */ new Map());
+    l(this, "leaveRoomDoneMethods", /* @__PURE__ */ new Map());
+    l(this, "roomProfileUpdatedMethods", /* @__PURE__ */ new Map());
+    l(this, "peerEnteredMethods", /* @__PURE__ */ new Map());
+    l(this, "peerLeavedMethods", /* @__PURE__ */ new Map());
+    l(this, "peerProfileUpdatedMethods", /* @__PURE__ */ new Map());
+    l(this, "url");
+    l(this, "ws", null);
+    l(this, "room", { id: "", spec: { maxLog: 1e3 }, profile: {} });
+    l(this, "selfPeer", { id: "", order: -1, profile: {} });
+    l(this, "peers", /* @__PURE__ */ new Map());
+    l(this, "currentSenderId", null);
+    l(this, "systemMessageTypes", [
       "Ping",
       "Pong",
       "EnterRoom",
@@ -542,13 +542,13 @@ class Z extends j {
     this.shareObjects.set(i, d), o.madoiObjectId_ = i;
     const h = new Array(), u = new Array(), m = /* @__PURE__ */ new Map();
     Object.getOwnPropertyNames(Object.getPrototypeOf(o)).forEach((p) => {
-      const l = o[p];
-      if (typeof l != "function" || !l.madoiMethodConfig_) return;
-      const a = l.madoiMethodConfig_, c = h.length;
-      m.set(p, c), h.push(l), u.push({ methodId: c, name: p, config: a }), console.debug(`add config ${n}.${p}=${JSON.stringify(a)} from decorator`);
+      const f = o[p];
+      if (typeof f != "function" || !f.madoiMethodConfig_) return;
+      const a = f.madoiMethodConfig_, c = h.length;
+      m.set(p, c), h.push(f), u.push({ methodId: c, name: p, config: a }), console.debug(`add config ${n}.${p}=${JSON.stringify(a)} from decorator`);
     });
     for (const p of t) {
-      const l = p.method, a = p, c = l.name;
+      const f = p.method, a = p, c = f.name;
       if ("share" in a)
         a.share.type || (a.share.type = P.type), a.share.maxLog || (a.share.maxLog = P.maxLog);
       else if ("notify" in a)
@@ -571,15 +571,15 @@ class Z extends j {
       const v = m.get(c);
       if (typeof v > "u") {
         const w = h.length;
-        m.set(c, w), h.push(l), u.push({ methodId: w, name: p.method.name, config: a }), console.debug(`add config ${n}.${c}=${JSON.stringify(p)} from argument`);
+        m.set(c, w), h.push(f), u.push({ methodId: w, name: p.method.name, config: a }), console.debug(`add config ${n}.${c}=${JSON.stringify(p)} from argument`);
       } else
         u[v].config = p, console.debug(`replace config ${n}.${c}=${JSON.stringify(p)} from argument`);
     }
     for (let p = 0; p < h.length; p++) {
-      const l = h[p], a = u[p], c = a.config;
+      const f = h[p], a = u[p], c = a.config;
       if ("share" in c) {
         const v = this.createMethodProxy(
-          l.bind(o),
+          f.bind(o),
           { share: c.share },
           i,
           a.methodId
@@ -589,7 +589,7 @@ class Z extends j {
         };
       } else if ("notify" in c) {
         const v = this.createMethodProxy(
-          l.bind(o),
+          f.bind(o),
           { notify: c.notify },
           i,
           a.methodId
@@ -599,17 +599,17 @@ class Z extends j {
         };
       } else if ("hostOnly" in c) {
         const v = this.addHostOnlyFunction(
-          l.bind(o),
+          f.bind(o),
           c.hostOnly
         );
         o[a.name] = function() {
           return d.modification++, v.apply(null, arguments);
         };
       } else "getState" in c ? this.getStateMethods.set(i, {
-        method: l.bind(o),
+        method: f.bind(o),
         config: c.getState,
         lastGet: 0
-      }) : "setState" in c ? this.setStateMethods.set(i, l.bind(o)) : "beforeEnterRoom" in c ? this.beforeEnterRoomMethods.set(i, l.bind(o)) : "enterRoomAllowed" in c ? this.enterRoomAllowedMethods.set(i, l.bind(o)) : "enterRoomDenied" in c ? this.enterRoomDeniedMethods.set(i, l.bind(o)) : "leaveRoomDone" in c ? this.leaveRoomDoneMethods.set(i, l.bind(o)) : "peerEntered" in c ? this.peerEnteredMethods.set(i, l.bind(o)) : "peerProfileUpdated" in c ? this.peerProfileUpdatedMethods.set(i, l.bind(o)) : "peerLeaved" in c && this.peerLeavedMethods.set(i, l.bind(o));
+      }) : "setState" in c ? this.setStateMethods.set(i, f.bind(o)) : "beforeEnterRoom" in c ? this.beforeEnterRoomMethods.set(i, f.bind(o)) : "enterRoomAllowed" in c ? this.enterRoomAllowedMethods.set(i, f.bind(o)) : "enterRoomDenied" in c ? this.enterRoomDeniedMethods.set(i, f.bind(o)) : "leaveRoomDone" in c ? this.leaveRoomDoneMethods.set(i, f.bind(o)) : "peerEntered" in c ? this.peerEnteredMethods.set(i, f.bind(o)) : "peerProfileUpdated" in c ? this.peerProfileUpdatedMethods.set(i, f.bind(o)) : "peerLeaved" in c && this.peerLeavedMethods.set(i, f.bind(o));
     }
     const y = T({
       definition: {
@@ -653,12 +653,12 @@ class Z extends j {
       if (h.ws === null) {
         if (e) return e.apply(null, [...arguments, h]);
       } else {
-        let y = null, p = "BROADCAST";
-        return (((u = t.share) == null ? void 0 : u.type) === "afterExec" || ((m = t.notify) == null ? void 0 : m.type) === "afterExec") && (y = e.apply(null, [...arguments, h]), p = "OTHERCAST"), h.sendMessage(L(
+        let y = null, p = "BROADCAST", f = h.shareObjects.get(o).revision;
+        return (((u = t.share) == null ? void 0 : u.type) === "afterExec" || ((m = t.notify) == null ? void 0 : m.type) === "afterExec") && (y = e.apply(null, [...arguments, h]), t.share && f++, p = "OTHERCAST"), h.sendMessage(L(
           p,
           {
             objId: o,
-            objRevision: h.shareObjects.get(o).revision,
+            objRevision: f,
             methodId: n,
             args: Array.from(arguments)
           }
