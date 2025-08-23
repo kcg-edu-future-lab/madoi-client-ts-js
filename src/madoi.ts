@@ -480,8 +480,8 @@ interface FunctionEntry {
 type MadoiObject = {[key: string]: any, madoiClassConfig_: {className?: string}, madoiObjectId_: number};
 interface ObjectEntry {
 	instance: MadoiObject;
-	modification: number;
-	revision: number;
+	revision: number;  // セッション開始時からの変更回数
+	update: number;  // 前回状態送信以降の変更回数。送信毎に0にリセット
 }
 interface MethodEntry {
 	promise?: Promise<any>;
@@ -795,7 +795,10 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const f = this.setStateMethods.get(msg.objId);
 			if(f) f(msg.state, msg.objRevision);
 			const o = this.shareObjects.get(msg.objId);
-			if(o) o.revision = msg.objRevision;
+			if(o) {
+				o.revision = msg.objRevision;
+				o.update = 0;
+			}
 		} else if(msg.type === "InvokeMethod"){
 			const o = this.shareObjects.get(msg.objId);
 			if(o === undefined){
@@ -809,10 +812,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				return;
 			}
 			if(m.config.share){
-				if(o.revision + 1 !== msg.serverObjRevision){
-					console.error(`Found inconsistency. serverObjRevision must be ${o.revision + 1} but ${msg.serverObjRevision}.`, msg);
+				if(m.config.share.type == "beforeExec" && o.revision + 1 !== msg.serverObjRevision){
+					console.error(`Found inconsistency. serverObjRevision must be ${o.revision + 1}` +
+						` but ${msg.serverObjRevision}.`, msg);
 				}
-				o.revision = msg.serverObjRevision;
+				o.revision++;
+				o.update++;
 			}
 			const ret = this.applyInvocation(m.original, msg.args);
 			if(ret instanceof Promise){
@@ -982,7 +987,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		}
 		// 共有オブジェクトのidを確定
 		const objId = this.shareObjects.size;
-		const objEntry = {instance: obj, revision: 0, modification: 0};
+		const objEntry = {instance: obj, revision: 0, update: 0};
 		this.shareObjects.set(objId, objEntry);
 		obj.madoiObjectId_ = objId;
 
@@ -1046,31 +1051,16 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const c = mc.config;
 			if("share" in c){
 				// @Shareの場合はメソッドを置き換え
-	            const newf = this.createMethodProxy(
-					f.bind(obj),
-					{share: c.share},
-					objId, mc.methodId);
-				obj[mc.name] = function(){
-					objEntry.modification++;
-					return newf.apply(null, arguments);
-				};
+	            obj[mc.name] = this.createMethodProxy(
+					f.bind(obj), {share: c.share}, objId, mc.methodId);
 			} else if("notify" in c){
 				// @Notifyの場合はメソッドを置き換え
-				const newf = this.createMethodProxy(
-					f.bind(obj),
-					{notify: c.notify},
-					objId, mc.methodId);
-				obj[mc.name] = function(){
-					return newf.apply(null, arguments);
-				};
+				obj[mc.name] = this.createMethodProxy(
+					f.bind(obj), {notify: c.notify}, objId, mc.methodId);
 			} else if("hostOnly" in c){
 				// @HostOnlyの場合はメソッドを置き換え
-				const newf = this.addHostOnlyFunction(
-					f.bind(obj), c.hostOnly);
-				obj[mc.name] = function(){
-					objEntry.modification++;
-					return newf.apply(null, arguments);
-				}
+				obj[mc.name] = this.addHostOnlyFunction(
+					f.bind(obj), c.hostOnly, objId);
 			} else if("getState" in c){
 				// @GetStateの場合はメソッドを登録
 				this.getStateMethods.set(objId, {method: f.bind(obj),
@@ -1157,10 +1147,14 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else{
 				let ret = null;
 				let castType: CastType = "BROADCAST";
-				let objRevision = self.shareObjects.get(objId)!.revision;
+				const objEntry = self.shareObjects.get(objId)!;
+				const objRevision = objEntry.revision;
 				if(config.share?.type === "afterExec" || config.notify?.type === "afterExec"){
 					ret = f.apply(null, [...arguments, self]);
-					if(config.share) objRevision++;
+					if(config.share){
+						objEntry.revision++;
+						objEntry.update++;
+					}
 					castType = "OTHERCAST";
 				}
 				self.sendMessage(newInvokeMethod(
@@ -1174,29 +1168,30 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		};
 	}
 
-	private addHostOnlyFunction<T extends Function>(f: T, _config: HostOnlyConfig): T{
+	private addHostOnlyFunction<T extends Function>(f: T, _config: HostOnlyConfig, objId?: number): T{
 		const self = this;
-		return function(){
-			// orderが最も小さければ実行。そうでなければ無視
-			let minOrder = self.selfPeer.order;
-			for(const p of self.peers.values()){
-				if(minOrder > p.order)
-					minOrder = p.order;
+		return (()=>{
+			// 自身がhost(最も小さいorderを持つ場合は実行。そうでなければ無視
+			if(!self.isSelfPeerHost()) return;
+			if(objId !== undefined){
+				const objEntry = self.shareObjects.get(objId)!;
+				objEntry.revision++;
+				objEntry.update++;
 			}
-			if(self.selfPeer.order === minOrder){
-				f.apply(null, [...arguments, self]);
-			}
-		} as any;
+			f.apply(null, [...arguments, self]);
+		}) as any;
 	}
 
 	public saveStates(){
 		if(!this.ws || !this.connecting) return;
+		// ホストでなければ送らない
+		if(!this.isSelfPeerHost()) return;
 		for(let [objId, oe] of this.shareObjects){
-			if(oe.modification == 0) continue;
+			if(oe.update == 0) continue;
 			const info = this.getStateMethods.get(objId);
 			if(!info) continue;
 			const curTick = performance.now();
-			if(info.config.maxUpdates && info.config.maxUpdates <= oe.modification ||
+			if(info.config.maxUpdates && info.config.maxUpdates <= oe.update ||
 				info.config.maxInterval && info.config.maxInterval <= (curTick - info.lastGet)){
 				this.doSendMessage(newUpdateObjectState({
 					objId: objId,
@@ -1204,7 +1199,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 					state: info.method(this)
 					}));
 				info.lastGet = curTick;
-				oe.modification = 0;
+				oe.update = 0;
 				console.debug(`state saved: ${objId}`)
 			}
 		}
@@ -1212,5 +1207,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	private applyInvocation(method: Function, args: any[]){
 		return method.apply(null, args);
+	}
+
+	private isSelfPeerHost(){
+		for(const p of this.peers.values()){
+			if(p.order < this.selfPeer.order) return false;
+		}
+		return true;
 	}
 }
