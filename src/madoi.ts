@@ -303,10 +303,10 @@ export function Share(config: ShareConfig = shareConfigDefault) {
 	const c = config;
 	if(!c.type) c.type = "beforeExec";
 	if(!c.maxLog) c.maxLog = 0;
-    return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		const mc: MethodConfig = {share: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
 }
 
 // Decorator
@@ -334,10 +334,10 @@ export const getStateConfigDefault: GetStateConfig = {
 };
 export function GetState(config: GetStateConfig = getStateConfigDefault){
 	const c = config;
-    return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		const mc: MethodConfig = {getState: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
 }
 
 // Decorator
@@ -345,10 +345,10 @@ export interface SetStateConfig{
 }
 export function SetState(config: SetStateConfig = {}){
 	const c = config;
-    return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		const mc: MethodConfig = {setState: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
 }
 
 // Decorator
@@ -359,7 +359,7 @@ export function HostOnly(config: HostOnlyConfig = {}){
 		const c = config;
 		const mc: MethodConfig = {hostOnly: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
 }
 
 // Decorator
@@ -381,7 +381,7 @@ export function EnterRoomAllowed(config: EnterRoomAllowedConfig = {}){
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		const mc: MethodConfig = {enterRoomAllowed: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
 }
 
 // Decorator
