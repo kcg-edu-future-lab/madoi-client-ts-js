@@ -386,6 +386,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     private addHostOnlyFunction;
     saveStates(): void;
     private applyInvocation;
+    private isSelfPeerHost;
 }
 export {};
 //# sourceMappingURL=madoi.d.ts.map
