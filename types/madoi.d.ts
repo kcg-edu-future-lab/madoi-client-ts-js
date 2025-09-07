@@ -268,23 +268,29 @@ export interface EnterRoomAllowedDetail {
     selfPeer: PeerInfo;
     otherPeers: PeerInfo[];
 }
+export type EnterRoomAllowedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomAllowedDetail>;
 export interface EnterRoomDeniedDetail {
     message: string;
 }
+export type EnterRoomDeniedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomDeniedDetail>;
 export interface LeaveRoomDoneDetail {
 }
+export type LeaveRoomDoneListenerOrObject = TypedCustomEventListenerOrObject<Madoi, LeaveRoomDoneDetail>;
 export interface RoomProfileUpdatedDetail {
     updates?: {
         [key: string]: any;
     };
     deletes?: string[];
 }
+export type RoomProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, RoomProfileUpdatedDetail>;
 export interface PeerEnteredDetail {
     peer: PeerInfo;
 }
+export type PeerEnteredListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerEnteredDetail>;
 export interface PeerLeavedDetail {
     peerId: string;
 }
+export type PeerLeavedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerLeavedDetail>;
 export interface PeerProfileUpdatedDetail {
     peerId: string;
     updates?: {
@@ -292,6 +298,7 @@ export interface PeerProfileUpdatedDetail {
     };
     deletes?: string[];
 }
+export type PeerProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerProfileUpdatedDetail>;
 export interface UserMessageDetail<T> {
     type: string;
     sender?: string;
@@ -302,6 +309,7 @@ export interface UserMessageDetail<T> {
 interface ErrorDetail {
     error: any;
 }
+export type ErrorListenerOrObject = TypedCustomEventListenerOrObject<Madoi, ErrorDetail>;
 export type UserMessageListener<D> = TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail;
