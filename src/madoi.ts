@@ -261,8 +261,8 @@ export function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: Invok
 	};
 }
 
-export interface UserMessage extends Message{
-    content: any;
+export interface UserMessage<C> extends Message{
+    content: C;
 }
 
 export type UpstreamMessageType =
@@ -276,7 +276,7 @@ export type DownStreamMessageType =
 	EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile |
 	PeerEntered | PeerLeaved | UpdatePeerProfile |
 	InvokeFunction | UpdateObjectState | InvokeMethod |
-	UserMessage;
+	UserMessage<any>;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
 
 
@@ -447,7 +447,19 @@ export function PeerProfileUpdated(config: PeerProfileUpdatedConfig = {}){
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		const mc: MethodConfig = {peerProfileUpdated: c};
 		target[name].madoiMethodConfig_ = mc;
-    }
+	}
+}
+
+// Decorator
+export interface UserMessageArrivedConfig{
+	type: string;
+}
+export function UserMeesageArrived(config: UserMessageArrivedConfig){
+	const c = config;
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+		const mc: MethodConfig = {userMessageArrived: c};
+		target[name].madoiMethodConfig_ = mc;
+	}
 }
 
 export type MethodConfig = 
@@ -463,7 +475,8 @@ export type MethodConfig =
 	{roomProfileUpdated: RoomProfileUpdatedConfig} |
 	{peerEntered: PeerEnteredConfig} |
 	{peerLeaved: PeerLeavedConfig} |
-	{peerProfileUpdated: PeerProfileUpdatedConfig};
+	{peerProfileUpdated: PeerProfileUpdatedConfig} |
+	{userMessageArrived: UserMessageArrivedConfig};
 
 
 
@@ -536,7 +549,7 @@ interface ErrorDetail{
 }
 export type ErrorListenerOrObject = TypedCustomEventListenerOrObject<Madoi, ErrorDetail>;
 
-export type UserMessageListener<D> =
+export type UserMessageListenerOrObject<D> =
 	TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 
 export class Madoi extends TypedCustomEventTarget<Madoi, {
@@ -558,7 +571,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	private shareOrNotifyMethods = new Map<string, MethodEntry>();
 
 	// annotated methods
-	private getStateMethods = new Map<number, {method: (madoi: Madoi)=>any, config: GetStateConfig, lastGet: number}>();
+	private getStateMethods = new Map<number, {
+		method: (madoi: Madoi)=>any,
+		config: GetStateConfig, lastGet: number}>();
 	private setStateMethods = new Map<number, (state: any, madoi: Madoi)=>void>(); // objectId -> @SetState method
 	private beforeEnterRoomMethods = new Map<number, (selfProfile: {[key: string]: string}, madoi: Madoi)=>void>();
 	private enterRoomAllowedMethods = new Map<number, (detail: EnterRoomAllowedDetail, madoi: Madoi)=>void>();
@@ -568,6 +583,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	private peerEnteredMethods = new Map<number, (detail: PeerEnteredDetail, madoi: Madoi)=>void>();
 	private peerLeavedMethods = new Map<number, (detail: PeerLeavedDetail, madoi: Madoi)=>void>();
 	private peerProfileUpdatedMethods = new Map<number, (detail: PeerProfileUpdatedDetail, madoi: Madoi)=>void>();
+	private userMessageArrivedMethods = new Map<number, {
+		method: (detail: UserMessageDetail<any>, madoi: Madoi)=>void,
+		config: UserMessageArrivedConfig}>();
 
 	private url: string;
 	private ws: WebSocket | null = null;
@@ -836,6 +854,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				});
 			}
 		} else if(msg.type){
+			const m = msg as UserMessageDetail<any>;
+			for(const [_, mc] of this.userMessageArrivedMethods){
+				if(mc.config.type === msg.type){
+					mc.method(m, this);
+				}
+			}
 			this.dispatchEvent(new CustomEvent(msg.type, {detail: msg}));
 		} else{
 			console.warn("Unknown message type.", msg);
@@ -912,13 +936,13 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			throw new Error("システムメッセージは送信できません。");
 		this.doSendMessage(msg);
 	}
-	addReceiver<D>(type: string, listener: UserMessageListener<D>){
+	addReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>){
 		if(this.isSystemMessageType(type))
 			throw new Error("システムメッセージのレシーバは登録できません。");
 		this.addEventListener(type as any, listener as EventListener);
 	}
 
-	removeReceiver<D>(type: string, listener: UserMessageListener<D>){
+	removeReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>){
 		this.removeEventListener(type as any, listener as EventListener);
 	}
 
@@ -1034,6 +1058,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else if("leaveRoomDone" in c){
 			} else if("peerEntered" in c){
 			} else if("peerLeaved" in c){
+			} else if("userMessageArrived" in c){
 			} else{
 				continue;
 			}
@@ -1097,6 +1122,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else if("peerLeaved" in c){
 				// @PeerLeavedの場合はメソッドを登録
 				this.peerLeavedMethods.set(objId, f.bind(obj))
+			} else if("userMessageArrived" in c){
+				// @UserMessageArrivedの場合はメソッドを登録
+				this.userMessageArrivedMethods.set(objId, f.bind(obj))
 			}
 		}
 		const msg = newDefineObject({
