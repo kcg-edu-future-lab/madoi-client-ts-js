@@ -186,7 +186,7 @@ class le extends D {
     l(this, "peerEnteredMethods", /* @__PURE__ */ new Map());
     l(this, "peerLeavedMethods", /* @__PURE__ */ new Map());
     l(this, "peerProfileUpdatedMethods", /* @__PURE__ */ new Map());
-    l(this, "userMessageArrivedMethods", /* @__PURE__ */ new Map());
+    l(this, "userMessageArrivedMethods", []);
     l(this, "url");
     l(this, "ws", null);
     l(this, "room", { id: "", spec: { maxLog: 1e3 }, profile: {} });
@@ -404,8 +404,8 @@ class le extends D {
       });
     } else if (e.type) {
       const t = e;
-      for (const [o, s] of this.userMessageArrivedMethods)
-        s.config.type === e.type && s.method(t, this);
+      for (const o of this.userMessageArrivedMethods)
+        o.config.type === e.type && o.method(t, this);
       this.dispatchEvent(new CustomEvent(e.type, { detail: e }));
     } else
       console.warn("Unknown message type.", e);
@@ -525,13 +525,13 @@ class le extends D {
       m.set(p, d), h.push(c), u.push({ methodId: d, name: p, config: f }), console.debug(`add config ${s}.${p}=${JSON.stringify(f)} from decorator`);
     });
     for (const p of t) {
-      const c = p.method, f = p, d = c.name, M = m.get(d);
-      if (typeof M > "u") {
-        const v = h.length;
-        m.set(d, v), h.push(c), u.push({ methodId: v, name: p.method.name, config: f }), console.debug(`add config ${s}.${d}=${JSON.stringify(p)} from argument`);
+      const c = p.method, f = p, d = c.name, v = m.get(d);
+      if (typeof v > "u") {
+        const M = h.length;
+        m.set(d, M), h.push(c), u.push({ methodId: M, name: p.method.name, config: f }), console.debug(`add config ${s}.${d}=${JSON.stringify(p)} from argument`);
       } else
-        u[M].config = {
-          ...u[M].config,
+        u[v].config = {
+          ...u[v].config,
           ...p
         }, console.debug(`merge config ${s}.${d}=${JSON.stringify(p)} from argument`);
     }
@@ -555,7 +555,10 @@ class le extends D {
         method: c.bind(o),
         config: d.getState,
         lastGet: 0
-      })) : "setState" in d ? (f.config = { setState: { ...L, ...d.setState } }, this.setStateMethods.set(r, c.bind(o))) : "beforeEnterRoom" in d ? (f.config = { beforeEnterRoom: { ...N, ...d.beforeEnterRoom } }, this.beforeEnterRoomMethods.set(r, c.bind(o))) : "enterRoomAllowed" in d ? (f.config = { enterRoomAllowed: { ...k, ...d.enterRoomAllowed } }, this.enterRoomAllowedMethods.set(r, c.bind(o))) : "enterRoomDenied" in d ? (f.config = { enterRoomDenied: { ...H, ...d.enterRoomDenied } }, this.enterRoomDeniedMethods.set(r, c.bind(o))) : "leaveRoomDone" in d ? (f.config = { leaveRoomDone: { ...J, ...d.leaveRoomDone } }, this.leaveRoomDoneMethods.set(r, c.bind(o))) : "peerEntered" in d ? (f.config = { peerEntered: { ...B, ...d.peerEntered } }, this.peerEnteredMethods.set(r, c.bind(o))) : "peerProfileUpdated" in d ? (f.config = { peerProfileUpdated: { ...G, ...d.peerProfileUpdated } }, this.peerProfileUpdatedMethods.set(r, c.bind(o))) : "peerLeaved" in d ? (f.config = { peerLeaved: { ...Q, ...d.peerLeaved } }, this.peerLeavedMethods.set(r, c.bind(o))) : "userMessageArrived" in d && (f.config = { userMessageArrived: { type: "", ...z, ...d.userMessageArrived } }, this.userMessageArrivedMethods.set(r, c.bind(o)));
+      })) : "setState" in d ? (f.config = { setState: { ...L, ...d.setState } }, this.setStateMethods.set(r, c.bind(o))) : "beforeEnterRoom" in d ? (f.config = { beforeEnterRoom: { ...N, ...d.beforeEnterRoom } }, this.beforeEnterRoomMethods.set(r, c.bind(o))) : "enterRoomAllowed" in d ? (f.config = { enterRoomAllowed: { ...k, ...d.enterRoomAllowed } }, this.enterRoomAllowedMethods.set(r, c.bind(o))) : "enterRoomDenied" in d ? (f.config = { enterRoomDenied: { ...H, ...d.enterRoomDenied } }, this.enterRoomDeniedMethods.set(r, c.bind(o))) : "leaveRoomDone" in d ? (f.config = { leaveRoomDone: { ...J, ...d.leaveRoomDone } }, this.leaveRoomDoneMethods.set(r, c.bind(o))) : "peerEntered" in d ? (f.config = { peerEntered: { ...B, ...d.peerEntered } }, this.peerEnteredMethods.set(r, c.bind(o))) : "peerProfileUpdated" in d ? (f.config = { peerProfileUpdated: { ...G, ...d.peerProfileUpdated } }, this.peerProfileUpdatedMethods.set(r, c.bind(o))) : "peerLeaved" in d ? (f.config = { peerLeaved: { ...Q, ...d.peerLeaved } }, this.peerLeavedMethods.set(r, c.bind(o))) : "userMessageArrived" in d && (f.config = { userMessageArrived: { type: "", ...z, ...d.userMessageArrived } }, this.userMessageArrivedMethods.push({
+        method: c.bind(o),
+        config: d.userMessageArrived
+      }));
     }
     const y = I({
       definition: {
