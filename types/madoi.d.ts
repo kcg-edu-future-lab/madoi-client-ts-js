@@ -171,12 +171,15 @@ export interface InvokeMethod extends BroadcastOrOthercastMessage, InvokeMethodB
     type: "InvokeMethod";
 }
 export declare function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: InvokeMethodBody): InvokeMethod;
-export interface UserMessage extends Message {
-    content: any;
+export interface UserMessage<C> extends Message {
+    content: C;
 }
 export type UpstreamMessageType = Ping | EnterRoom | LeaveRoom | UpdateRoomProfile | UpdatePeerProfile | DefineFunction | DefineObject | InvokeFunction | UpdateObjectState | InvokeMethod;
-export type DownStreamMessageType = Pong | EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile | PeerEntered | PeerLeaved | UpdatePeerProfile | InvokeFunction | UpdateObjectState | InvokeMethod | UserMessage;
+export type DownStreamMessageType = Pong | EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile | PeerEntered | PeerLeaved | UpdatePeerProfile | InvokeFunction | UpdateObjectState | InvokeMethod | UserMessage<any>;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
+export interface DecoratedMethod {
+    madoiMethodConfig_: MethodConfig;
+}
 export declare function ShareClass(config?: {
     className?: string;
 }): (target: any) => void;
@@ -190,18 +193,15 @@ export interface ShareConfig {
         reckonUntil?: number;
     };
 }
-export declare const shareConfigDefault: ShareConfig;
 export declare function Share(config?: ShareConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface NotifyConfig {
     type?: "beforeExec" | "afterExec";
 }
-export declare const notifyConfigDefault: NotifyConfig;
 export declare function Notify(config?: NotifyConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface GetStateConfig {
     maxInterval?: number;
     maxUpdates?: number;
 }
-export declare const getStateConfigDefault: GetStateConfig;
 export declare function GetState(config?: GetStateConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface SetStateConfig {
 }
@@ -233,33 +233,40 @@ export declare function PeerLeaved(config?: PeerLeavedConfig): (target: any, nam
 export interface PeerProfileUpdatedConfig {
 }
 export declare function PeerProfileUpdated(config?: PeerProfileUpdatedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export type MethodConfig = {
-    share: ShareConfig;
-} | {
-    notify: NotifyConfig;
-} | {
-    hostOnly: HostOnlyConfig;
-} | {
-    getState: GetStateConfig;
-} | {
-    setState: SetStateConfig;
-} | {
-    beforeEnterRoom: BeforeEnterRoomConfig;
-} | {
-    enterRoomAllowed: EnterRoomAllowedConfig;
-} | {
-    enterRoomDenied: EnterRoomDeniedConfig;
-} | {
-    leaveRoomDone: LeaveRoomDoneConfig;
-} | {
-    roomProfileUpdated: RoomProfileUpdatedConfig;
-} | {
-    peerEntered: PeerEnteredConfig;
-} | {
-    peerLeaved: PeerLeavedConfig;
-} | {
-    peerProfileUpdated: PeerProfileUpdatedConfig;
-};
+export interface UserMessageArrivedConfig {
+    type: string;
+}
+export declare function UserMeesageArrived(config: UserMessageArrivedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export interface MethodConfig {
+    share?: ShareConfig;
+    notify?: NotifyConfig;
+    hostOnly?: HostOnlyConfig;
+    getState?: GetStateConfig;
+    setState?: SetStateConfig;
+    beforeEnterRoom?: BeforeEnterRoomConfig;
+    enterRoomAllowed?: EnterRoomAllowedConfig;
+    enterRoomDenied?: EnterRoomDeniedConfig;
+    leaveRoomDone?: LeaveRoomDoneConfig;
+    roomProfileUpdated?: RoomProfileUpdatedConfig;
+    peerEntered?: PeerEnteredConfig;
+    peerLeaved?: PeerLeavedConfig;
+    peerProfileUpdated?: PeerProfileUpdatedConfig;
+    userMessageArrived?: UserMessageArrivedConfig;
+}
+export declare const shareConfigDefault: ShareConfig;
+export declare const notifyConfigDefault: NotifyConfig;
+export declare const getStateConfigDefault: GetStateConfig;
+export declare const setStateConfigDefault: SetStateConfig;
+export declare const hostOnlyConfigDefault: HostOnlyConfig;
+export declare const beforeEnterRoomConfigDefault: BeforeEnterRoomConfig;
+export declare const enterRoomAllowedConfigDefault: EnterRoomAllowedConfig;
+export declare const enterRoomDeniedConfigDefault: EnterRoomDeniedConfig;
+export declare const leaveRoomDoneConfigDefault: LeaveRoomDoneConfig;
+export declare const roomProfileUpdatedConfigDefault: RoomProfileUpdatedConfig;
+export declare const peerEnteredConfigDefault: PeerEnteredConfig;
+export declare const peerLeavedConfigDefault: PeerLeavedConfig;
+export declare const peerProfileUpdatedConfigDefault: PeerProfileUpdatedConfig;
+export declare const userMessageArrivedConfigDefault: {};
 export type MethodAndConfigParam = {
     method: Function;
 } & MethodConfig;
@@ -310,7 +317,7 @@ interface ErrorDetail {
     error: any;
 }
 export type ErrorListenerOrObject = TypedCustomEventListenerOrObject<Madoi, ErrorDetail>;
-export type UserMessageListener<D> = TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
+export type UserMessageListenerOrObject<D> = TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail;
     enterRoomDenied: EnterRoomDeniedDetail;
@@ -336,6 +343,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     private peerEnteredMethods;
     private peerLeavedMethods;
     private peerProfileUpdatedMethods;
+    private userMessageArrivedMethods;
     private url;
     private ws;
     private room;
@@ -383,8 +391,8 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     broadcast(type: string, content: any): void;
     othercast(type: string, content: any): void;
     sendMessage(msg: Message): void;
-    addReceiver<D>(type: string, listener: UserMessageListener<D>): void;
-    removeReceiver<D>(type: string, listener: UserMessageListener<D>): void;
+    addReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>): void;
+    removeReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>): void;
     private replacer;
     private doSendMessage;
     registerFunction<T extends Function>(func: T, config?: MethodConfig): T;
