@@ -420,7 +420,7 @@ export function PeerProfileUpdated(config: PeerProfileUpdatedConfig = {}){
 export interface UserMessageArrivedConfig{
 	type: string;
 }
-export function UserMeesageArrived(config: UserMessageArrivedConfig){
+export function UserMessageArrived(config: UserMessageArrivedConfig){
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
 		target[name].madoiMethodConfig_ = {userMessageArrived: config};
 	}
