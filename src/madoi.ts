@@ -560,9 +560,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	private peerEnteredMethods = new Map<number, (detail: PeerEnteredDetail, madoi: Madoi)=>void>();
 	private peerLeavedMethods = new Map<number, (detail: PeerLeavedDetail, madoi: Madoi)=>void>();
 	private peerProfileUpdatedMethods = new Map<number, (detail: PeerProfileUpdatedDetail, madoi: Madoi)=>void>();
-	private userMessageArrivedMethods = new Map<number, {
+	private userMessageArrivedMethods: {
 		method: (detail: UserMessageDetail<any>, madoi: Madoi)=>void,
-		config: UserMessageArrivedConfig}>();
+		config: UserMessageArrivedConfig}[] = [];
 
 	private url: string;
 	private ws: WebSocket | null = null;
@@ -832,7 +832,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}
 		} else if(msg.type){
 			const m = msg as UserMessageDetail<any>;
-			for(const [_, mc] of this.userMessageArrivedMethods){
+			for(const mc of this.userMessageArrivedMethods){
 				if(mc.config.type === msg.type){
 					mc.method(m, this);
 				}
@@ -1086,15 +1086,16 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			} else if("peerProfileUpdated" in c){
 				// @PeerProfileUpdatedの場合はメソッドを登録
 				mc.config = {peerProfileUpdated: {...peerProfileUpdatedConfigDefault, ...c.peerProfileUpdated}};
-				this.peerProfileUpdatedMethods.set(objId, f.bind(obj))
+				this.peerProfileUpdatedMethods.set(objId, f.bind(obj));
 			} else if("peerLeaved" in c){
 				// @PeerLeavedの場合はメソッドを登録
 				mc.config = {peerLeaved: {...peerLeavedConfigDefault, ...c.peerLeaved}};
-				this.peerLeavedMethods.set(objId, f.bind(obj))
+				this.peerLeavedMethods.set(objId, f.bind(obj));
 			} else if("userMessageArrived" in c){
 				// @UserMessageArrivedの場合はメソッドを登録
 				mc.config = {userMessageArrived: {type: "", ...userMessageArrivedConfigDefault, ...c.userMessageArrived}};
-				this.userMessageArrivedMethods.set(objId, f.bind(obj))
+				this.userMessageArrivedMethods.push({
+					method: f.bind(obj), config: c.userMessageArrived!});
 			}
 		}
 		const msg = newDefineObject({
