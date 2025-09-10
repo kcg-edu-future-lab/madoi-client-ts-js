@@ -664,7 +664,7 @@ export {
   Z as SetState,
   K as Share,
   W as ShareClass,
-  fe as UserMeesageArrived,
+  fe as UserMessageArrived,
   N as beforeEnterRoomConfigDefault,
   k as enterRoomAllowedConfigDefault,
   H as enterRoomDeniedConfigDefault,

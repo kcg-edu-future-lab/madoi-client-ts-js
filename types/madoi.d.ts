@@ -236,7 +236,7 @@ export declare function PeerProfileUpdated(config?: PeerProfileUpdatedConfig): (
 export interface UserMessageArrivedConfig {
     type: string;
 }
-export declare function UserMeesageArrived(config: UserMessageArrivedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function UserMessageArrived(config: UserMessageArrivedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface MethodConfig {
     share?: ShareConfig;
     notify?: NotifyConfig;
