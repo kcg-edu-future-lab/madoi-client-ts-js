@@ -182,11 +182,11 @@ export interface DefineFunction extends PeerToServerMessage, DefineFunctionBody{
 	type: "DefineFunction";
 }
 export function newDefineFunction(body: DefineFunctionBody): DefineFunction{
-    return {
-        type: "DefineFunction",
+	return {
+		type: "DefineFunction",
 		...peerToServerMessageDefault,
-        ...body
-    };
+		...body
+	};
 }
 export interface MethodDefinition{
 	methodId: number;
@@ -220,12 +220,12 @@ export interface InvokeFunction extends BroadcastOrOthercastMessage, InvokeFunct
 	type: "InvokeFunction";
 }
 export function newInvokeFunction(castType: "BROADCAST" | "OTHERCAST", body: InvokeFunctionBody): InvokeFunction{
-    return {
-        type: "InvokeFunction",
+	return {
+		type: "InvokeFunction",
 		castType: castType,
 		...broadcastOrOthercastMessageDefault,
-        ...body
-    };
+		...body
+	};
 }
 export interface UpdateObjectStateBody{
 	objId: number;
@@ -236,11 +236,11 @@ export interface UpdateObjectState extends PeerToServerMessage{
 	type: "UpdateObjectState";
 }
 export function newUpdateObjectState(body: UpdateObjectStateBody): UpdateObjectState{
-    return {
-        type: "UpdateObjectState",
+	return {
+		type: "UpdateObjectState",
 		...peerToServerMessageDefault,
-        ...body
-    };
+		...body
+	};
 }
 export interface InvokeMethodBody{
 	objId: number;
@@ -253,8 +253,8 @@ export interface InvokeMethod extends BroadcastOrOthercastMessage, InvokeMethodB
 	type: "InvokeMethod";
 }
 export function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: InvokeMethodBody): InvokeMethod{
-    return {
-        type: "InvokeMethod",
+	return {
+		type: "InvokeMethod",
 		castType: castType,
 		...broadcastOrOthercastMessageDefault,
 		...body
@@ -262,7 +262,7 @@ export function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: Invok
 }
 
 export interface UserMessage<C> extends Message{
-    content: C;
+	content: C;
 }
 
 export type UpstreamMessageType =
@@ -282,6 +282,10 @@ export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectStat
 
 //---- decorators ----
 
+export interface DecoratedMethod{
+	madoiMethodConfig_: MethodConfig;
+}
+
 // Decorator
 export function ShareClass(config: {className?: string} = {}){
 	return (target: any) => {
@@ -291,21 +295,14 @@ export function ShareClass(config: {className?: string} = {}){
 
 // Decorator
 export interface ShareConfig{
-	type?: "beforeExec" | "afterExec"
-	maxLog?: number
-	allowedTo?: string[]
-	update?: {freq?: number, interpolateBy?: number, reckonUntil?: number}
+	type?: "beforeExec" | "afterExec";
+	maxLog?: number;
+	allowedTo?: string[];
+	update?: {freq?: number, interpolateBy?: number, reckonUntil?: number};
 }
-export const shareConfigDefault: ShareConfig = {
-	type: "beforeExec", maxLog: 0, allowedTo: ["USER"]
-};
-export function Share(config: ShareConfig = shareConfigDefault) {
-	const c = config;
-	if(!c.type) c.type = "beforeExec";
-	if(!c.maxLog) c.maxLog = 0;
+export function Share(config: ShareConfig = {}) {
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {share: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {share: config};
 	}
 }
 
@@ -313,30 +310,20 @@ export function Share(config: ShareConfig = shareConfigDefault) {
 export interface NotifyConfig{
 	type?: "beforeExec" | "afterExec"
 }
-export const notifyConfigDefault: NotifyConfig = {
-	type: "beforeExec"
-};
-export function Notify(config: NotifyConfig = notifyConfigDefault) {
-	const c = {...config};
-    return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {notify: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+export function Notify(config: NotifyConfig = {}) {
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+		target[name].madoiMethodConfig_ = {notify: config};
+	}
 }
 
 // Decorator
 export interface GetStateConfig{
-	maxInterval?: number
-	maxUpdates?: number
+	maxInterval?: number;
+	maxUpdates?: number;
 }
-export const getStateConfigDefault: GetStateConfig = {
-	maxInterval: 5000
-};
-export function GetState(config: GetStateConfig = getStateConfigDefault){
-	const c = config;
+export function GetState(config: GetStateConfig = {}){
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {getState: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {getState: config};
 	}
 }
 
@@ -344,10 +331,8 @@ export function GetState(config: GetStateConfig = getStateConfigDefault){
 export interface SetStateConfig{
 }
 export function SetState(config: SetStateConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {setState: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {setState: config};
 	}
 }
 
@@ -356,9 +341,7 @@ export interface HostOnlyConfig{
 }
 export function HostOnly(config: HostOnlyConfig = {}){
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const c = config;
-		const mc: MethodConfig = {hostOnly: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {hostOnly: config};
 	}
 }
 
@@ -366,10 +349,8 @@ export function HostOnly(config: HostOnlyConfig = {}){
 export interface BeforeEnterRoomConfig{
 }
 export function BeforeEnterRoom(config: BeforeEnterRoomConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {beforeEnterRoom: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {beforeEnterRoom: config};
 	}
 }
 
@@ -377,10 +358,8 @@ export function BeforeEnterRoom(config: BeforeEnterRoomConfig = {}){
 export interface EnterRoomAllowedConfig{
 }
 export function EnterRoomAllowed(config: EnterRoomAllowedConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {enterRoomAllowed: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {enterRoomAllowed: config};
 	}
 }
 
@@ -388,65 +367,52 @@ export function EnterRoomAllowed(config: EnterRoomAllowedConfig = {}){
 export interface EnterRoomDeniedConfig{
 }
 export function EnterRoomDenied(config: EnterRoomDeniedConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {enterRoomDenied: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+		target[name].madoiMethodConfig_ = {enterRoomDenied: config};
+	}
 }
 
 // Decorator
 export interface LeaveRoomDoneConfig{
 }
 export function LeaveRoomDone(config: LeaveRoomDoneConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {leaveRoomDone: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+		target[name].madoiMethodConfig_ = {leaveRoomDone: config};
+	}
 }
 
 // Decorator
 export interface RoomProfileUpdatedConfig{
 }
 export function RoomProfileUpdated(config: RoomProfileUpdatedConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {roomProfileUpdated: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+		target[name].madoiMethodConfig_ = {roomProfileUpdated: config};
+	}
 }
 
 // Decorator
 export interface PeerEnteredConfig{
 }
 export function PeerEntered(config: PeerEnteredConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {peerEntered: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+		target[name].madoiMethodConfig_ = {peerEntered: config};
+	}
 }
-
 // Decorator
 export interface PeerLeavedConfig{
 }
 export function PeerLeaved(config: PeerLeavedConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {peerLeaved: c};
-		target[name].madoiMethodConfig_ = mc;
-    }
+		target[name].madoiMethodConfig_ = {peerLeaved: config};
+	}
 }
 
 // Decorator
 export interface PeerProfileUpdatedConfig{
 }
 export function PeerProfileUpdated(config: PeerProfileUpdatedConfig = {}){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {peerProfileUpdated: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {peerProfileUpdated: config};
 	}
 }
 
@@ -455,30 +421,41 @@ export interface UserMessageArrivedConfig{
 	type: string;
 }
 export function UserMeesageArrived(config: UserMessageArrivedConfig){
-	const c = config;
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		const mc: MethodConfig = {userMessageArrived: c};
-		target[name].madoiMethodConfig_ = mc;
+		target[name].madoiMethodConfig_ = {userMessageArrived: config};
 	}
 }
 
-export type MethodConfig = 
-	{share: ShareConfig} |
-	{notify: NotifyConfig} |
-	{hostOnly: HostOnlyConfig} |
-	{getState: GetStateConfig} |
-	{setState: SetStateConfig} |
-	{beforeEnterRoom: BeforeEnterRoomConfig} |
-	{enterRoomAllowed: EnterRoomAllowedConfig} |
-	{enterRoomDenied: EnterRoomDeniedConfig} |
-	{leaveRoomDone: LeaveRoomDoneConfig} |
-	{roomProfileUpdated: RoomProfileUpdatedConfig} |
-	{peerEntered: PeerEnteredConfig} |
-	{peerLeaved: PeerLeavedConfig} |
-	{peerProfileUpdated: PeerProfileUpdatedConfig} |
-	{userMessageArrived: UserMessageArrivedConfig};
-
-
+export interface MethodConfig{
+	share?: ShareConfig;
+	notify?: NotifyConfig;
+	hostOnly?: HostOnlyConfig;
+	getState?: GetStateConfig;
+	setState?: SetStateConfig;
+	beforeEnterRoom?: BeforeEnterRoomConfig;
+	enterRoomAllowed?: EnterRoomAllowedConfig;
+	enterRoomDenied?: EnterRoomDeniedConfig;
+	leaveRoomDone?: LeaveRoomDoneConfig;
+	roomProfileUpdated?: RoomProfileUpdatedConfig;
+	peerEntered?: PeerEnteredConfig;
+	peerLeaved?: PeerLeavedConfig;
+	peerProfileUpdated?: PeerProfileUpdatedConfig;
+	userMessageArrived?: UserMessageArrivedConfig;
+}
+export const shareConfigDefault: ShareConfig = {type: "beforeExec", maxLog: 0, allowedTo: ["USER"]};
+export const notifyConfigDefault: NotifyConfig = {type: "beforeExec"};
+export const getStateConfigDefault: GetStateConfig = {maxInterval: 5000};
+export const setStateConfigDefault: SetStateConfig = {maxInterval: 5000};
+export const hostOnlyConfigDefault: HostOnlyConfig = {};
+export const beforeEnterRoomConfigDefault: BeforeEnterRoomConfig = {};
+export const enterRoomAllowedConfigDefault: EnterRoomAllowedConfig = {};
+export const enterRoomDeniedConfigDefault: EnterRoomDeniedConfig = {};
+export const leaveRoomDoneConfigDefault: LeaveRoomDoneConfig = {};
+export const roomProfileUpdatedConfigDefault: RoomProfileUpdatedConfig = {};
+export const peerEnteredConfigDefault: PeerEnteredConfig = {};
+export const peerLeavedConfigDefault: PeerLeavedConfig = {};
+export const peerProfileUpdatedConfigDefault: PeerProfileUpdatedConfig = {};
+export const userMessageArrivedConfigDefault = {};
 
 // ---- madoi ----
 export type MethodAndConfigParam = {method: Function} & MethodConfig;
@@ -553,7 +530,7 @@ export type UserMessageListenerOrObject<D> =
 	TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 
 export class Madoi extends TypedCustomEventTarget<Madoi, {
-    enterRoomAllowed: EnterRoomAllowedDetail,
+	enterRoomAllowed: EnterRoomAllowedDetail,
 	enterRoomDenied: EnterRoomDeniedDetail,
 	leaveRoomDone: LeaveRoomDoneDetail,
 	roomProfileUpdated: RoomProfileUpdatedDetail,
@@ -964,11 +941,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	registerFunction<T extends Function>(func: T, config: MethodConfig = {share: {}}): T{
 		if("hostOnly" in config){
-			return this.addHostOnlyFunction(func, config);
+			return this.addHostOnlyFunction(func, config.hostOnly!);
 		} else if("notify" in config){
-			// デフォルト値チェック
-			if(!config.notify.type) config.notify.type = notifyConfigDefault.type;
-
+			config = {notify: {...notifyConfigDefault, ...config.notify}};
 			const funcName = func.name;
 			const funcId = this.shareOrNotifyFunctions.size;
 			const f = this.createFunctionProxy(func, {notify: config.notify}, funcId);
@@ -984,10 +959,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}));
 			return ret;
 		} else if("share" in config){
-			// デフォルト値チェック
-			if(!config.share.type) config.share.type = shareConfigDefault.type;
-			if(!config.share.maxLog) config.share.maxLog = shareConfigDefault.maxLog;
-
+			config = {share: {...shareConfigDefault, ...config.share}};
 			const funcName = func.name;
 			const funcId = this.shareOrNotifyFunctions.size;
 			const f = this.createFunctionProxy(func, {share: config.share}, funcId);
@@ -1032,7 +1004,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const f = obj[methodName];
 			if(typeof(f) != "function") return;
 			if(!f.madoiMethodConfig_) return;
-			const cfg: MethodConfig = f.madoiMethodConfig_;
+			const cfg: MethodConfig = (f as DecoratedMethod).madoiMethodConfig_;
 			const mi = methods.length;
 			methodToIndex.set(methodName, mi);
 			methods.push(f);
@@ -1044,24 +1016,6 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const f = mc.method;
 			const c: MethodConfig = mc;
 			const methodName = f.name;
-			if("share" in c){ // デフォルト値チェック
-				if(!c.share.type) c.share.type = shareConfigDefault.type;
-				if(!c.share.maxLog) c.share.maxLog = shareConfigDefault.maxLog;
-			} else if("notify" in c){ // デフォルト値チェック
-				if(!c.notify.type) c.notify.type = notifyConfigDefault.type;
-			} else if("hostOnly" in c){
-			} else if("getState" in c){
-				if(!c.getState.maxInterval) c.getState.maxInterval = getStateConfigDefault.maxInterval;
-			} else if("setState" in c){
-			} else if("enterRoomAllowed" in c){
-			} else if("enterRoomDenied" in c){
-			} else if("leaveRoomDone" in c){
-			} else if("peerEntered" in c){
-			} else if("peerLeaved" in c){
-			} else if("userMessageArrived" in c){
-			} else{
-				continue;
-			}
 			const mi = methodToIndex.get(methodName);
 			if(typeof mi === "undefined"){
 				// 追加
@@ -1071,9 +1025,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				methodDefinitions.push({methodId: mi, name: mc.method.name, config: c});
 				console.debug(`add config ${className}.${methodName}=${JSON.stringify(mc)} from argument`);
 			} else{
-				// 既にあれば設定を置き換え
-				methodDefinitions[mi].config = mc;
-				console.debug(`replace config ${className}.${methodName}=${JSON.stringify(mc)} from argument`);
+				// 既にあれば設定をマージ
+				methodDefinitions[mi].config = {
+					...methodDefinitions[mi].config,
+					...mc
+				};
+				console.debug(`merge config ${className}.${methodName}=${JSON.stringify(mc)} from argument`);
 			}
 		}
 
@@ -1084,46 +1041,59 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			const c = mc.config;
 			if("share" in c){
 				// @Shareの場合はメソッドを置き換え
-	            obj[mc.name] = this.createMethodProxy(
-					f.bind(obj), {share: c.share}, objId, mc.methodId);
+				mc.config = {share: {...shareConfigDefault, ...c.share}};
+				obj[mc.name] = this.createMethodProxy(
+					f.bind(obj), c, objId, mc.methodId);
 			} else if("notify" in c){
 				// @Notifyの場合はメソッドを置き換え
+				mc.config = {notify: {...notifyConfigDefault, ...c.notify}};
 				obj[mc.name] = this.createMethodProxy(
-					f.bind(obj), {notify: c.notify}, objId, mc.methodId);
+					f.bind(obj), c, objId, mc.methodId);
 			} else if("hostOnly" in c){
 				// @HostOnlyの場合はメソッドを置き換え
+				mc.config = {hostOnly: {...hostOnlyConfigDefault, ...c.hostOnly}};
 				obj[mc.name] = this.addHostOnlyFunction(
-					f.bind(obj), c.hostOnly, objId);
+					f.bind(obj), c.hostOnly!, objId);
 			} else if("getState" in c){
 				// @GetStateの場合はメソッドを登録
-				this.getStateMethods.set(objId, {method: f.bind(obj),
-					config: c.getState, lastGet: 0});
+				mc.config = {getState: {...getStateConfigDefault, ...c.getState}};
+				this.getStateMethods.set(objId, {
+					method: f.bind(obj), config: c.getState!, lastGet: 0});
 			} else if("setState" in c){
 				// @SetStateの場合はメソッドを登録
+				mc.config = {setState: {...setStateConfigDefault, ...c.setState}};
 				this.setStateMethods.set(objId, f.bind(obj));
 			} else if("beforeEnterRoom" in c){
 				// @BeforeEnterRoomの場合はメソッドを登録
+				mc.config = {beforeEnterRoom: {...beforeEnterRoomConfigDefault, ...c.beforeEnterRoom}};
 				this.beforeEnterRoomMethods.set(objId, f.bind(obj));
 			} else if("enterRoomAllowed" in c){
 				// @EnterRoomAllowedの場合はメソッドを登録
+				mc.config = {enterRoomAllowed: {...enterRoomAllowedConfigDefault, ...c.enterRoomAllowed}};
 				this.enterRoomAllowedMethods.set(objId, f.bind(obj));
 			} else if("enterRoomDenied" in c){
 				// @EnterRoomDeniedの場合はメソッドを登録
+				mc.config = {enterRoomDenied: {...enterRoomDeniedConfigDefault, ...c.enterRoomDenied}};
 				this.enterRoomDeniedMethods.set(objId, f.bind(obj));
 			} else if("leaveRoomDone" in c){
 				// @LeaveRoomDoneの場合はメソッドを登録
+				mc.config = {leaveRoomDone: {...leaveRoomDoneConfigDefault, ...c.leaveRoomDone}};
 				this.leaveRoomDoneMethods.set(objId, f.bind(obj));
 			} else if("peerEntered" in c){
 				// @PeerEnteredの場合はメソッドを登録
+				mc.config = {peerEntered: {...peerEnteredConfigDefault, ...c.peerEntered}};
 				this.peerEnteredMethods.set(objId, f.bind(obj));
 			} else if("peerProfileUpdated" in c){
 				// @PeerProfileUpdatedの場合はメソッドを登録
+				mc.config = {peerProfileUpdated: {...peerProfileUpdatedConfigDefault, ...c.peerProfileUpdated}};
 				this.peerProfileUpdatedMethods.set(objId, f.bind(obj))
 			} else if("peerLeaved" in c){
 				// @PeerLeavedの場合はメソッドを登録
+				mc.config = {peerLeaved: {...peerLeavedConfigDefault, ...c.peerLeaved}};
 				this.peerLeavedMethods.set(objId, f.bind(obj))
 			} else if("userMessageArrived" in c){
 				// @UserMessageArrivedの場合はメソッドを登録
+				mc.config = {userMessageArrived: {type: "", ...userMessageArrivedConfigDefault, ...c.userMessageArrived}};
 				this.userMessageArrivedMethods.set(objId, f.bind(obj))
 			}
 		}
