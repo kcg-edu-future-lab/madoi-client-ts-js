@@ -296,9 +296,6 @@ export function ShareClass(config: {className?: string} = {}){
 // Decorator
 export interface ShareConfig{
 	type?: "beforeExec" | "afterExec";
-	maxLog?: number;
-	allowedTo?: string[];
-	update?: {freq?: number, interpolateBy?: number, reckonUntil?: number};
 }
 export function Share(config: ShareConfig = {}) {
 	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
@@ -442,10 +439,10 @@ export interface MethodConfig{
 	peerProfileUpdated?: PeerProfileUpdatedConfig;
 	userMessageArrived?: UserMessageArrivedConfig;
 }
-export const shareConfigDefault: ShareConfig = {type: "beforeExec", maxLog: 0, allowedTo: ["USER"]};
+export const shareConfigDefault: ShareConfig = {type: "beforeExec"};
 export const notifyConfigDefault: NotifyConfig = {type: "beforeExec"};
 export const getStateConfigDefault: GetStateConfig = {maxInterval: 5000};
-export const setStateConfigDefault: SetStateConfig = {maxInterval: 5000};
+export const setStateConfigDefault: SetStateConfig = {};
 export const hostOnlyConfigDefault: HostOnlyConfig = {};
 export const beforeEnterRoomConfigDefault: BeforeEnterRoomConfig = {};
 export const enterRoomAllowedConfigDefault: EnterRoomAllowedConfig = {};
