@@ -821,9 +821,9 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}
 			const ret = this.applyInvocation(m.original, msg.args);
 			if(ret instanceof Promise){
-				ret.then(()=>{
+				ret.then(function(){
 					m.resolve?.apply(null, arguments);
-				}).catch(()=>{
+				}).catch(function(){
 					m.reject?.apply(null, arguments);
 				});
 			}
@@ -1174,7 +1174,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	private addHostOnlyFunction<T extends Function>(f: T, _config: HostOnlyConfig, objId?: number): T{
 		const self = this;
-		return (()=>{
+		return (function(){
 			// 自身がhost(最も小さいorderを持つ場合は実行。そうでなければ無視
 			if(!self.isSelfPeerHost()) return;
 			if(objId !== undefined){
