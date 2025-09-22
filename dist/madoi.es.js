@@ -10,7 +10,7 @@ const g = {
   sender: "__PEER__",
   castType: "PEERTOSERVER",
   recipients: void 0
-}, b = {
+}, E = {
   sender: "__PEER__",
   castType: "BROADCAST",
   recipients: void 0
@@ -42,14 +42,14 @@ function V(n) {
 function P(n) {
   return {
     type: "UpdateRoomProfile",
-    ...b,
+    ...E,
     ...n
   };
 }
 function R(n) {
   return {
     type: "UpdatePeerProfile",
-    ...b,
+    ...E,
     ...n
   };
 }
@@ -165,7 +165,7 @@ function fe(n) {
     i[e].madoiMethodConfig_ = { userMessageArrived: n };
   };
 }
-const S = { type: "beforeExec", maxLog: 0, allowedTo: ["USER"] }, E = { type: "beforeExec" }, x = { maxInterval: 5e3 }, L = { maxInterval: 5e3 }, F = {}, N = {}, k = {}, H = {}, J = {}, ce = {}, B = {}, Q = {}, G = {}, z = {};
+const S = { type: "beforeExec" }, b = { type: "beforeExec" }, x = { maxInterval: 5e3 }, L = {}, F = {}, N = {}, k = {}, H = {}, J = {}, ce = {}, B = {}, Q = {}, G = {}, z = {};
 class le extends D {
   constructor(e, t, o, s) {
     super();
@@ -395,10 +395,10 @@ class le extends D {
       }
       s.config.share && (s.config.share.type == "beforeExec" && t.revision + 1 !== e.serverObjRevision && console.error(`Found inconsistency. serverObjRevision must be ${t.revision + 1} but ${e.serverObjRevision}.`, e), t.revision++, t.update++);
       const r = this.applyInvocation(s.original, e.args);
-      r instanceof Promise && r.then(() => {
+      r instanceof Promise && r.then(function() {
         var a;
         (a = s.resolve) == null || a.apply(null, arguments);
-      }).catch(() => {
+      }).catch(function() {
         var a;
         (a = s.reject) == null || a.apply(null, arguments);
       });
@@ -482,7 +482,7 @@ class le extends D {
     if ("hostOnly" in t)
       return this.addHostOnlyFunction(e, t.hostOnly);
     if ("notify" in t) {
-      t = { notify: { ...E, ...t.notify } };
+      t = { notify: { ...b, ...t.notify } };
       const o = e.name, s = this.shareOrNotifyFunctions.size, r = this.createFunctionProxy(e, { notify: t.notify }, s), a = function() {
         return r.apply(null, arguments);
       };
@@ -525,13 +525,13 @@ class le extends D {
       m.set(p, d), h.push(c), u.push({ methodId: d, name: p, config: f }), console.debug(`add config ${s}.${p}=${JSON.stringify(f)} from decorator`);
     });
     for (const p of t) {
-      const c = p.method, f = p, d = c.name, v = m.get(d);
-      if (typeof v > "u") {
-        const M = h.length;
-        m.set(d, M), h.push(c), u.push({ methodId: M, name: p.method.name, config: f }), console.debug(`add config ${s}.${d}=${JSON.stringify(p)} from argument`);
+      const c = p.method, f = p, d = c.name, M = m.get(d);
+      if (typeof M > "u") {
+        const v = h.length;
+        m.set(d, v), h.push(c), u.push({ methodId: v, name: p.method.name, config: f }), console.debug(`add config ${s}.${d}=${JSON.stringify(p)} from argument`);
       } else
-        u[v].config = {
-          ...u[v].config,
+        u[M].config = {
+          ...u[M].config,
           ...p
         }, console.debug(`merge config ${s}.${d}=${JSON.stringify(p)} from argument`);
     }
@@ -542,7 +542,7 @@ class le extends D {
         d,
         r,
         f.methodId
-      )) : "notify" in d ? (f.config = { notify: { ...E, ...d.notify } }, o[f.name] = this.createMethodProxy(
+      )) : "notify" in d ? (f.config = { notify: { ...b, ...d.notify } }, o[f.name] = this.createMethodProxy(
         c.bind(o),
         d,
         r,
@@ -618,7 +618,7 @@ class le extends D {
   }
   addHostOnlyFunction(e, t, o) {
     const s = this;
-    return () => {
+    return function() {
       if (s.isSelfPeerHost()) {
         if (o !== void 0) {
           const r = s.shareObjects.get(o);
@@ -684,7 +684,7 @@ export {
   T as newUpdateObjectState,
   R as newUpdatePeerProfile,
   P as newUpdateRoomProfile,
-  E as notifyConfigDefault,
+  b as notifyConfigDefault,
   B as peerEnteredConfigDefault,
   Q as peerLeavedConfigDefault,
   G as peerProfileUpdatedConfigDefault,

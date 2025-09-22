@@ -185,13 +185,6 @@ export declare function ShareClass(config?: {
 }): (target: any) => void;
 export interface ShareConfig {
     type?: "beforeExec" | "afterExec";
-    maxLog?: number;
-    allowedTo?: string[];
-    update?: {
-        freq?: number;
-        interpolateBy?: number;
-        reckonUntil?: number;
-    };
 }
 export declare function Share(config?: ShareConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface NotifyConfig {
