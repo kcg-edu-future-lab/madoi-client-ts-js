@@ -1,6 +1,6 @@
 {
   "name": "madoi-client",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "description": "A Client library of Madoi Server for Distributed Sharing",
   "main": "dist/madoi.umd.js",
   "module": "dist/madoi.es.js",
