@@ -177,89 +177,65 @@ export interface UserMessage<C> extends Message {
 export type UpstreamMessageType = Ping | EnterRoom | LeaveRoom | UpdateRoomProfile | UpdatePeerProfile | DefineFunction | DefineObject | InvokeFunction | UpdateObjectState | InvokeMethod;
 export type DownStreamMessageType = Pong | EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile | PeerEntered | PeerLeaved | UpdatePeerProfile | InvokeFunction | UpdateObjectState | InvokeMethod | UserMessage<any>;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
+type MethodConfig = {
+    beforeEnterRoom?: {};
+    enterRoomAllowed?: {};
+    enterRoomDenied?: {};
+    leaveRoomDone?: {};
+    roomProfileUpdated?: {};
+    peerEntered?: {};
+    peerLeaved?: {};
+    peerProfileUpdated?: {};
+    userMessageArrived?: {
+        type: string;
+    };
+    distributed?: DistributedConfig;
+    changeState?: {};
+    getState?: GetStateConfig;
+    setState?: {};
+    hostOnly?: {};
+};
 export interface DecoratedMethod {
     madoiMethodConfig_: MethodConfig;
 }
-export declare function ShareClass(config?: {
-    className?: string;
-}): (target: any) => void;
-export interface ShareConfig {
-    type?: "beforeExec" | "afterExec";
+export declare function ClassName(name: string): (target: any) => void;
+interface DistributedConfig {
+    /**
+     * 実行の順序付けを行うかどうか。trueを指定すると、同じルームに参加しているアプリケーション間でメソッドが同時に実行されても、
+     * 常に同じ順序で実行される。順序づけは、通常、実行要求を一旦サーバに送信してサーバに届いた順に実行要求を各アプリケーションに一斉送信し、
+     * 受信するとメソッドを実行する、という仕組みで実現される。
+     */
+    serialized: boolean;
 }
-export declare function Share(config?: ShareConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface NotifyConfig {
-    type?: "beforeExec" | "afterExec";
-}
-export declare function Notify(config?: NotifyConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function Distributed(config?: DistributedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function ChangeState(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface GetStateConfig {
+    /**
+     * 最初の変更から最大何ミリ秒経過すると変更の取得と送信を行うか。default: 5000。
+     */
     maxInterval?: number;
-    maxUpdates?: number;
+    /**
+     * 最後の変更から何ミリ秒経過すると変更の取得と送信を行うか。default: 3000。
+     */
+    minInterval?: number;
 }
 export declare function GetState(config?: GetStateConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface SetStateConfig {
 }
-export declare function SetState(config?: SetStateConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface HostOnlyConfig {
-}
-export declare function HostOnly(config?: HostOnlyConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface BeforeEnterRoomConfig {
-}
-export declare function BeforeEnterRoom(config?: BeforeEnterRoomConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface EnterRoomAllowedConfig {
-}
-export declare function EnterRoomAllowed(config?: EnterRoomAllowedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface EnterRoomDeniedConfig {
-}
-export declare function EnterRoomDenied(config?: EnterRoomDeniedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface LeaveRoomDoneConfig {
-}
-export declare function LeaveRoomDone(config?: LeaveRoomDoneConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface RoomProfileUpdatedConfig {
-}
-export declare function RoomProfileUpdated(config?: RoomProfileUpdatedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface PeerEnteredConfig {
-}
-export declare function PeerEntered(config?: PeerEnteredConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface PeerLeavedConfig {
-}
-export declare function PeerLeaved(config?: PeerLeavedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface PeerProfileUpdatedConfig {
-}
-export declare function PeerProfileUpdated(config?: PeerProfileUpdatedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function SetState(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function HostOnly(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function BeforeEnterRoom(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function EnterRoomAllowed(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function EnterRoomDenied(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function LeaveRoomDone(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function RoomProfileUpdated(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerEntered(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerLeaved(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerProfileUpdated(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface UserMessageArrivedConfig {
     type: string;
 }
-export declare function UserMessageArrived(config: UserMessageArrivedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
-export interface MethodConfig {
-    share?: ShareConfig;
-    notify?: NotifyConfig;
-    hostOnly?: HostOnlyConfig;
-    getState?: GetStateConfig;
-    setState?: SetStateConfig;
-    beforeEnterRoom?: BeforeEnterRoomConfig;
-    enterRoomAllowed?: EnterRoomAllowedConfig;
-    enterRoomDenied?: EnterRoomDeniedConfig;
-    leaveRoomDone?: LeaveRoomDoneConfig;
-    roomProfileUpdated?: RoomProfileUpdatedConfig;
-    peerEntered?: PeerEnteredConfig;
-    peerLeaved?: PeerLeavedConfig;
-    peerProfileUpdated?: PeerProfileUpdatedConfig;
-    userMessageArrived?: UserMessageArrivedConfig;
-}
-export declare const shareConfigDefault: ShareConfig;
-export declare const notifyConfigDefault: NotifyConfig;
-export declare const getStateConfigDefault: GetStateConfig;
-export declare const setStateConfigDefault: SetStateConfig;
-export declare const hostOnlyConfigDefault: HostOnlyConfig;
-export declare const beforeEnterRoomConfigDefault: BeforeEnterRoomConfig;
-export declare const enterRoomAllowedConfigDefault: EnterRoomAllowedConfig;
-export declare const enterRoomDeniedConfigDefault: EnterRoomDeniedConfig;
-export declare const leaveRoomDoneConfigDefault: LeaveRoomDoneConfig;
-export declare const roomProfileUpdatedConfigDefault: RoomProfileUpdatedConfig;
-export declare const peerEnteredConfigDefault: PeerEnteredConfig;
-export declare const peerLeavedConfigDefault: PeerLeavedConfig;
-export declare const peerProfileUpdatedConfigDefault: PeerProfileUpdatedConfig;
-export declare const userMessageArrivedConfigDefault: {};
+export declare function UserMessageArrived(type: string): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export type MethodAndConfigParam = {
     method: Function;
 } & MethodConfig;
@@ -323,7 +299,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
 }> {
     private connecting;
     private interimQueue;
-    private shareOrNotifyFunctions;
+    private distributedFuncs;
     private shareObjects;
     private shareOrNotifyMethods;
     private getStateMethods;
@@ -393,6 +369,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     private createFunctionProxy;
     private createMethodProxy;
     private addHostOnlyFunction;
+    private objectChanged;
     saveStates(): void;
     private applyInvocation;
     private isSelfPeerHost;
