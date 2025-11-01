@@ -73,7 +73,8 @@ class Counter{
     this.element = element;
   }
   // 状態を変更するメソッド
-  @Share()
+  @Distributed()
+  @ChangeState()
   increment(){
     this.count++;
     this.element.innerHTML = `count is ${this.count}`;
@@ -92,7 +93,9 @@ class Counter{
 }
 ```
 
-`Counter`クラスは、状態の変更を行う`increment`、状態を取得する`getCount`、状態を設定する`setCount`メソッドを持つシンプルなクラスです。状態を取得するメソッドには`@GetState()`デコレータを、状態を設定するメソッドには`@SetState()`デコレータを、状態を変更するメソッドには、`@Share()`デコレータを付けます。Madoiクライアントは、状態共有を行うために、これらのメソッドを適切に呼び出します。
+`Counter`クラスは、カウンターの更新を行う`increment`、カウンターを取得する`getCount`、カウンターを設定する`setCount`メソッドを持つシンプルなクラスです。このクラスのインスタンスを複数のアプリケーションで同期させることを考えます。まず、あるアプリケーション内で`increment`が実行されると、カウンターが更新されます。状態を同期するには、他のアプリケーションでも`increment`実行される必要があります。このメソッドに`@Distributed()`デコレータを追加すると、Madoiにより、実行が他のアプリケーションにも分配され、実行されます。
+
+次に、新規参加者にはカウンターの最新の値を伝える必要があります。そのためには、カウンターが更新されると、状態を取得し、サーバに保存しておく必要があります。状態の変更を行う`increment`メソッドに`@ChangeState`デコレータを、状態の取得を行う`getCount`メソッドに`@GetState()`デコレータを追加すると、Madoiが`increment`が呼び出される度に`getState`を呼び出して戻り値をサーバに送信します。状態を設定する`setCount`メソッドには`@SetState()`デコレータを追加しておくと、新たに参加したアプリケーションの`setCount`に、最新の状態が渡されます。
 
 次に、`Counter`クラスのインスタンスを作成し、Madoiクライアントに登録します。
 
