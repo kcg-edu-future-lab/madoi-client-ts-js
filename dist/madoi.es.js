@@ -497,7 +497,7 @@ class Z extends C {
     for (const h of t) {
       const c = h.method, p = h, d = c.name, y = M.get(d);
       if (typeof y > "u") {
-        p.distributed && (p.distributed = { ...b, ...p.distributed }), p.getState && (p.getState = { ...R, ...p.distributed });
+        p.distributed && (p.distributed = { ...b, ...p.distributed }), p.getState && (p.getState = { ...R, ...p.getState });
         const g = f.length;
         M.set(d, g), f.push(c), u.push({ methodId: g, name: h.method.name, config: p }), console.debug(`add config ${o}.${d}=${JSON.stringify(h)} from argument`);
       } else

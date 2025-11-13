@@ -958,7 +958,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			if(typeof mi === "undefined"){
 				// 追加
 				if(c.distributed) c.distributed = {...distributedConfigDefault, ...c.distributed};
-				if(c.getState) c.getState = {...getStateConfigDefault, ...c.distributed};
+				if(c.getState) c.getState = {...getStateConfigDefault, ...c.getState};
 				const mi = methods.length;
 				methodToIndex.set(methodName, mi);
 				methods.push(f);
