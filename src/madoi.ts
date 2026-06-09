@@ -526,7 +526,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	private ws: WebSocket | null = null;
 	private room: RoomInfo = {id: "", spec: {maxLog: 1000}, profile: {}};
 	private selfPeer: PeerInfo = {id: "", order: -1, profile: {}};
-	private peers = new Map<string, PeerInfo>();
+	private otherPeers = new Map<string, PeerInfo>();
 	private currentSenderId: string | null = null;
 
 	constructor(roomIdOrUrl: string, authToken: string,
@@ -557,15 +557,11 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		setInterval(()=>{this.sendPing();}, 30000);
 	}
 
-	getRoomId(){
-		return this.room.id;
+	getRoom(){
+		return this.room;
 	}
 
-	getRoomProfile(){
-		return this.room?.profile;
-	}
-
-	setRoomProfile(name: string, value: any){
+	updateRoomProfile(name: string, value: any){
 		const m: {[key: string]: any} = {};
 		m[name] = value;
 		this.sendMessage(newUpdateRoomProfile(
@@ -579,12 +575,8 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		));
 	}
 
-	getSelfPeerId(){
-		return this.selfPeer?.id;
-	}
-
-	getSelfPeerProfile(){
-		return this.selfPeer.profile;
+	getSelfPeer(){
+		return this.selfPeer;
 	}
 
 	updateSelfPeerProfile(name: string, value: any){
@@ -613,13 +605,18 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		this.dispatchCustomEvent("peerProfileUpdated", v);
 	}
 
+	getOtherPeers(){
+		return this.otherPeers;
+	}
+
 	isMessageProcessing(){
 		return this.currentSenderId !== null;
 	}
 
 	getCurrentSender(){
 		if(this.currentSenderId === null) return null;
-		return this.peers.get(this.currentSenderId);
+		if(this.isCurrentSenderSelf()) return this.selfPeer;
+		return this.otherPeers.get(this.currentSenderId);
 	}
 
 	isCurrentSenderSelf(){
@@ -676,9 +673,8 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}
 			this.room = msg.room;
 			this.selfPeer.order = msg.selfPeer.order;
-			this.peers.set(m.selfPeer.id, {...m.selfPeer, profile: this.selfPeer.profile});
 			for(const p of m.otherPeers){
-				this.peers.set(p.id, p);
+				this.otherPeers.set(p.id, p);
 			}
 			this.dispatchCustomEvent("enterRoomAllowed", m);
 			if(msg.histories) for(const h of msg.histories){
@@ -711,20 +707,20 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			this.dispatchCustomEvent("roomProfileUpdated", v);
 		} else if(msg.type === "PeerEntered"){
 			const m: PeerEnteredDetail = msg as PeerEntered;
-			this.peers.set(m.peer.id, m.peer);
+			this.otherPeers.set(m.peer.id, m.peer);
 			for(const [_, f] of this.peerEnteredMethods){
 				f(m, this);
 			}
 			this.dispatchCustomEvent("peerEntered", m);
 		} else if(msg.type === "PeerLeaved"){
 			const m: PeerLeavedDetail = msg as PeerLeaved;
-			this.peers.delete(msg.peerId);
+			this.otherPeers.delete(msg.peerId);
 			for(const [_, f] of this.peerLeavedMethods){
 				f(m, this);
 			}
 			this.dispatchCustomEvent("peerLeaved", m);
 		} else if(msg.type === "UpdatePeerProfile"){
-			const p = this.peers.get(msg.sender!);
+			const p = this.otherPeers.get(msg.sender!);
 			if(msg.sender && p){
 				if(msg.updates) for(const [key, value] of Object.entries(msg.updates)) {
 					p.profile[key] = value;
@@ -1136,7 +1132,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	}
 
 	private isSelfPeerHost(){
-		for(const p of this.peers.values()){
+		for(const p of this.otherPeers.values()){
 			if(p.order < this.selfPeer.order) return false;
 		}
 		return true;
