@@ -1,9 +1,11 @@
 var E = Object.defineProperty;
-var j = (i, l, e) => l in i ? E(i, l, { enumerable: !0, configurable: !0, writable: !0, value: e }) : i[l] = e;
-var a = (i, l, e) => j(i, typeof l != "symbol" ? l + "" : l, e);
-class C extends EventTarget {
-  dispatchCustomEvent(l, e) {
-    return super.dispatchEvent(new CustomEvent(l, { detail: e }));
+var j = (i, f, e) => f in i ? E(i, f, { enumerable: !0, configurable: !0, writable: !0, value: e }) : i[f] = e;
+var a = (i, f, e) => j(i, typeof f != "symbol" ? f + "" : f, e);
+class _ extends EventTarget {
+  dispatchEvent(f, e) {
+    return super.dispatchEvent(
+      f instanceof Event ? f : new CustomEvent(f, e)
+    );
   }
 }
 const v = {
@@ -18,14 +20,14 @@ const v = {
   sender: "__PEER__",
   recipients: void 0
 };
-function _(i = void 0) {
+function A(i = void 0) {
   return {
     type: "Ping",
     ...v,
     body: i
   };
 }
-function I(i) {
+function D(i) {
   return {
     type: "EnterRoom",
     ...v,
@@ -39,7 +41,7 @@ function L(i) {
     ...i
   };
 }
-function P(i) {
+function g(i) {
   return {
     type: "UpdateRoomProfile",
     ...w,
@@ -53,26 +55,26 @@ function S(i) {
     ...i
   };
 }
-function A(i) {
+function I(i) {
   return {
     type: "DefineFunction",
     ...v,
     ...i
   };
 }
-function D(i) {
+function C(i) {
   return {
     type: "DefineObject",
     ...v,
     ...i
   };
 }
-function T(i, l) {
+function T(i, f) {
   return {
     type: "InvokeFunction",
     castType: i,
     ...O,
-    ...l
+    ...f
   };
 }
 function $(i) {
@@ -82,77 +84,77 @@ function $(i) {
     ...i
   };
 }
-function U(i, l) {
+function U(i, f) {
   return {
     type: "InvokeMethod",
     castType: i,
     ...O,
-    ...l
+    ...f
   };
 }
-function m(i) {
-  return (l, e, t) => {
-    l[e].madoiMethodConfig_ = {
-      ...l[e].madoiMethodConfig_ ? l[e].madoiMethodConfig_ : {},
+function M(i) {
+  return (f, e, t) => {
+    f[e].madoiMethodConfig_ = {
+      ...f[e].madoiMethodConfig_ ? f[e].madoiMethodConfig_ : {},
       ...i
     };
   };
 }
 function F(i) {
-  return (l) => {
-    l.madoiClassConfig_ = { className: i };
+  return (f) => {
+    f.madoiClassConfig_ = { className: i };
   };
 }
 const b = {
   serialized: !0
 };
 function N(i = b) {
-  return m({ distributed: i });
+  return M({ distributed: i });
 }
 function x() {
-  return m({ changeState: {} });
+  return M({ changeState: {} });
 }
 const R = {
   maxInterval: 5e3,
   minInterval: 3e3
 };
 function H(i = R) {
-  return m({ getState: i });
+  return M({ getState: i });
 }
 function J() {
-  return m({ setState: {} });
+  return M({ setState: {} });
 }
 function z() {
-  return m({ hostOnly: {} });
+  return M({ hostOnly: {} });
 }
 function B() {
-  return m({ beforeEnterRoom: {} });
+  return M({ beforeEnterRoom: {} });
 }
 function Q() {
-  return m({ enterRoomAllowed: {} });
+  return M({ enterRoomAllowed: {} });
 }
 function q() {
-  return m({ enterRoomDenied: {} });
+  return M({ enterRoomDenied: {} });
 }
 function G() {
-  return m({ leaveRoomDone: {} });
+  return M({ leaveRoomDone: {} });
 }
 function V() {
-  return m({ roomProfileUpdated: {} });
+  return M({ roomProfileUpdated: {} });
 }
 function W() {
-  return m({ peerEntered: {} });
+  return M({ peerEntered: {} });
 }
 function K() {
-  return m({ peerLeaved: {} });
+  return M({ peerLeaved: {} });
 }
 function X() {
-  return m({ peerProfileUpdated: {} });
+  return M({ peerProfileUpdated: {} });
 }
 function Y(i) {
-  return m({ userMessageArrived: { type: i } });
+  return M({ userMessageArrived: { type: i } });
 }
-class Z extends C {
+class Z extends _ {
   constructor(e, t, s, o) {
     super();
     a(this, "connecting", !1);
@@ -177,7 +179,7 @@ class Z extends C {
     a(this, "ws", null);
     a(this, "room", { id: "", spec: { maxLog: 1e3 }, profile: {} });
     a(this, "selfPeer", { id: "", order: -1, profile: {} });
-    a(this, "peers", /* @__PURE__ */ new Map());
+    a(this, "otherPeers", /* @__PURE__ */ new Map());
     a(this, "currentSenderId", null);
     a(this, "systemMessageTypes", [
       "Ping",
@@ -202,8 +204,8 @@ class Z extends C {
     if (e.match(/^wss?:\/\//))
       this.url = `${e}${n}authToken=${t}`, this.room.id = e.split("rooms/")[1].split("?")[0];
     else {
-      const r = document.querySelector("script[src$='madoi.js']").src.split("/", 5), f = (r[0] == "http:" ? "ws:" : "wss:") + "//" + r[2] + "/" + r[3];
-      this.url = `${f}/rooms/${e}${n}authToken=${t}`, this.room.id = e;
+      const r = document.querySelector("script[src$='madoi.js']").src.split("/", 5), c = (r[0] == "http:" ? "ws:" : "wss:") + "//" + r[2] + "/" + r[3];
+      this.url = `${c}/rooms/${e}${n}authToken=${t}`, this.room.id = e;
     }
     this.ws = new WebSocket(this.url), this.ws.onopen = (r) => this.handleOnOpen(r), this.ws.onclose = (r) => this.handleOnClose(r), this.ws.onerror = (r) => this.handleOnError(r), this.ws.onmessage = (r) => this.handleOnMessage(r), setInterval(() => {
       this.saveStates();
@@ -211,30 +213,22 @@ class Z extends C {
       this.sendPing();
     }, 3e4);
   }
-  getRoomId() {
-    return this.room.id;
+  getRoom() {
+    return this.room;
   }
-  getRoomProfile() {
-    var e;
-    return (e = this.room) == null ? void 0 : e.profile;
-  }
-  setRoomProfile(e, t) {
+  updateRoomProfile(e, t) {
     const s = {};
-    s[e] = t, this.sendMessage(P(
+    s[e] = t, this.sendMessage(g(
       { updates: s }
     ));
   }
   removeRoomProfile(e) {
-    this.sendMessage(P(
+    this.sendMessage(g(
       { deletes: [e] }
     ));
   }
-  getSelfPeerId() {
-    var e;
-    return (e = this.selfPeer) == null ? void 0 : e.id;
-  }
-  getSelfPeerProfile() {
-    return this.selfPeer.profile;
+  getSelfPeer() {
+    return this.selfPeer;
   }
   updateSelfPeerProfile(e, t) {
     this.selfPeer.profile[e] = t;
@@ -245,7 +239,7 @@ class Z extends C {
     const o = { updates: s, peerId: this.selfPeer.id };
     for (const [n, r] of this.peerProfileUpdatedMethods)
       r(o, this);
-    this.dispatchCustomEvent("peerProfileUpdated", o);
+    this.dispatchEvent("peerProfileUpdated", { detail: o });
   }
   removeSelfPeerProfile(e) {
     delete this.selfPeer.profile[e], this.sendMessage(S(
@@ -254,13 +248,16 @@ class Z extends C {
     const t = { deletes: [e], peerId: this.selfPeer.id };
     for (const [s, o] of this.peerProfileUpdatedMethods)
       o(t, this);
-    this.dispatchCustomEvent("peerProfileUpdated", t);
+    this.dispatchEvent("peerProfileUpdated", { detail: t });
+  }
+  getOtherPeers() {
+    return this.otherPeers;
   }
   isMessageProcessing() {
     return this.currentSenderId !== null;
   }
   getCurrentSender() {
-    return this.currentSenderId === null ? null : this.peers.get(this.currentSenderId);
+    return this.currentSenderId === null ? null : this.isCurrentSenderSelf() ? this.selfPeer : this.otherPeers.get(this.currentSenderId);
   }
   isCurrentSenderSelf() {
     return this.currentSenderId === this.selfPeer.id;
@@ -271,14 +268,14 @@ class Z extends C {
   }
   sendPing() {
     var e;
-    (e = this.ws) == null || e.send(JSON.stringify(_()));
+    (e = this.ws) == null || e.send(JSON.stringify(A()));
   }
   handleOnOpen(e) {
     var t;
     this.connecting = !0;
     for (const [s, o] of this.beforeEnterRoomMethods)
       o(this.selfPeer.profile, this);
-    this.doSendMessage(I({ room: this.room, selfPeer: this.selfPeer }));
+    this.doSendMessage(D({ room: this.room, selfPeer: this.selfPeer }));
     for (let s of this.interimQueue)
       (t = this.ws) == null || t.send(JSON.stringify(s));
     this.interimQueue = [];
@@ -302,20 +299,20 @@ class Z extends C {
       const t = e;
       for (const [s, o] of this.enterRoomAllowedMethods)
         o(t, this);
-      this.room = e.room, this.selfPeer.order = e.selfPeer.order, this.peers.set(t.selfPeer.id, { ...t.selfPeer, profile: this.selfPeer.profile });
+      this.room = e.room, this.selfPeer.order = e.selfPeer.order;
       for (const s of t.otherPeers)
-        this.peers.set(s.id, s);
-      if (this.dispatchCustomEvent("enterRoomAllowed", t), e.histories) for (const s of e.histories)
+        this.otherPeers.set(s.id, s);
+      if (this.dispatchEvent("enterRoomAllowed", { detail: t }), e.histories) for (const s of e.histories)
         this.data(s);
     } else if (e.type === "EnterRoomDenied") {
       const s = e;
       for (const [o, n] of this.enterRoomDeniedMethods)
         n(s, this);
-      this.dispatchCustomEvent("enterRoomDenied", s);
+      this.dispatchEvent("enterRoomDenied", { detail: s });
     } else if (e.type == "LeaveRoomDone") {
       for (const [t, s] of this.leaveRoomDoneMethods)
         s(this);
-      this.dispatchCustomEvent("leaveRoomDone");
+      this.dispatchEvent("leaveRoomDone");
     } else if (e.type === "UpdateRoomProfile") {
       const t = e;
       if (t.updates) for (const [o, n] of Object.entries(t.updates))
@@ -325,21 +322,21 @@ class Z extends C {
       const s = { updates: t.updates, deletes: t.deletes };
       for (const [o, n] of this.roomProfileUpdatedMethods)
         n(s, this);
-      this.dispatchCustomEvent("roomProfileUpdated", s);
+      this.dispatchEvent("roomProfileUpdated", { detail: s });
     } else if (e.type === "PeerEntered") {
       const t = e;
-      this.peers.set(t.peer.id, t.peer);
+      this.otherPeers.set(t.peer.id, t.peer);
       for (const [s, o] of this.peerEnteredMethods)
         o(t, this);
-      this.dispatchCustomEvent("peerEntered", t);
+      this.dispatchEvent("peerEntered", { detail: t });
     } else if (e.type === "PeerLeaved") {
       const t = e;
-      this.peers.delete(e.peerId);
+      this.otherPeers.delete(e.peerId);
       for (const [s, o] of this.peerLeavedMethods)
         o(t, this);
-      this.dispatchCustomEvent("peerLeaved", t);
+      this.dispatchEvent("peerLeaved", { detail: t });
     } else if (e.type === "UpdatePeerProfile") {
-      const t = this.peers.get(e.sender);
+      const t = this.otherPeers.get(e.sender);
       if (e.sender && t) {
         if (e.updates) for (const [o, n] of Object.entries(e.updates))
           t.profile[o] = n;
@@ -348,7 +345,7 @@ class Z extends C {
         const s = { ...e, peerId: e.sender };
         for (const [o, n] of this.peerProfileUpdatedMethods)
           n(s, this);
-        this.dispatchCustomEvent("peerProfileUpdated", s);
+        this.dispatchEvent("peerProfileUpdated", { detail: s });
       }
     } else if (e.type === "InvokeFunction") {
       const t = `${e.funcId}`, s = this.distributedFuncs.get(t);
@@ -472,7 +469,7 @@ class Z extends C {
       const s = e.name, o = this.distributedFuncs.size, n = this.createFunctionProxy(e, t, o), r = function() {
         return n.apply(null, arguments);
       };
-      return this.doSendMessage(A({
+      return this.doSendMessage(I({
         definition: { funcId: o, name: s, config: t }
       })), r;
     }
@@ -487,85 +484,85 @@ class Z extends C {
     s.__proto__.constructor.madoiClassConfig_ && (o = s.__proto__.constructor.madoiClassConfig_.className);
     const n = this.shareObjects.size, r = { instance: s, revision: 0, update: 0 };
     this.shareObjects.set(n, r), s.madoiObjectId_ = n;
-    const f = new Array(), u = new Array(), M = /* @__PURE__ */ new Map();
+    const c = new Array(), u = new Array(), m = /* @__PURE__ */ new Map();
     Object.getOwnPropertyNames(Object.getPrototypeOf(s)).forEach((h) => {
-      const c = s[h];
-      if (typeof c != "function" || !c.madoiMethodConfig_) return;
-      const p = c.madoiMethodConfig_, d = f.length;
-      M.set(h, d), f.push(c), u.push({ methodId: d, name: h, config: p }), console.debug(`add config ${o}.${h}=${JSON.stringify(p)} from decorator`);
+      const l = s[h];
+      if (typeof l != "function" || !l.madoiMethodConfig_) return;
+      const p = l.madoiMethodConfig_, d = c.length;
+      m.set(h, d), c.push(l), u.push({ methodId: d, name: h, config: p }), console.debug(`add config ${o}.${h}=${JSON.stringify(p)} from decorator`);
     });
     for (const h of t) {
-      const c = h.method, p = h, d = c.name, y = M.get(d);
+      const l = h.method, p = h, d = l.name, y = m.get(d);
       if (typeof y > "u") {
         p.distributed && (p.distributed = { ...b, ...p.distributed }), p.getState && (p.getState = { ...R, ...p.getState });
-        const g = f.length;
-        M.set(d, g), f.push(c), u.push({ methodId: g, name: h.method.name, config: p }), console.debug(`add config ${o}.${d}=${JSON.stringify(h)} from argument`);
+        const P = c.length;
+        m.set(d, P), c.push(l), u.push({ methodId: P, name: h.method.name, config: p }), console.debug(`add config ${o}.${d}=${JSON.stringify(h)} from argument`);
       } else
         u[y].config = {
           ...u[y].config,
           ...h
         }, console.debug(`merge config ${o}.${d}=${JSON.stringify(h)} from argument`);
     }
-    for (let h = 0; h < f.length; h++) {
-      const c = f[h], p = u[h], d = p.config;
+    for (let h = 0; h < c.length; h++) {
+      const l = c[h], p = u[h], d = p.config;
       d.distributed || d.changeState ? s[p.name] = this.createMethodProxy(
-        c.bind(s),
+        l.bind(s),
         d,
         n,
         p.methodId
       ) : d.hostOnly ? s[p.name] = this.addHostOnlyFunction(
-        c.bind(s),
+        l.bind(s),
         p.config,
         n
       ) : d.getState ? this.getStateMethods.set(n, {
-        method: c.bind(s),
+        method: l.bind(s),
         config: d.getState,
         firstObjModified: -1,
         lastObjModified: -1
-      }) : d.setState ? this.setStateMethods.set(n, c.bind(s)) : d.beforeEnterRoom ? this.beforeEnterRoomMethods.set(n, c.bind(s)) : d.enterRoomAllowed ? this.enterRoomAllowedMethods.set(n, c.bind(s)) : d.enterRoomDenied ? this.enterRoomDeniedMethods.set(n, c.bind(s)) : d.leaveRoomDone ? this.leaveRoomDoneMethods.set(n, c.bind(s)) : d.peerEntered ? this.peerEnteredMethods.set(n, c.bind(s)) : d.peerProfileUpdated ? this.peerProfileUpdatedMethods.set(n, c.bind(s)) : d.peerLeaved ? this.peerLeavedMethods.set(n, c.bind(s)) : d.userMessageArrived && this.userMessageArrivedMethods.push({
-        method: c.bind(s),
+      }) : d.setState ? this.setStateMethods.set(n, l.bind(s)) : d.beforeEnterRoom ? this.beforeEnterRoomMethods.set(n, l.bind(s)) : d.enterRoomAllowed ? this.enterRoomAllowedMethods.set(n, l.bind(s)) : d.enterRoomDenied ? this.enterRoomDeniedMethods.set(n, l.bind(s)) : d.leaveRoomDone ? this.leaveRoomDoneMethods.set(n, l.bind(s)) : d.peerEntered ? this.peerEnteredMethods.set(n, l.bind(s)) : d.peerProfileUpdated ? this.peerProfileUpdatedMethods.set(n, l.bind(s)) : d.peerLeaved ? this.peerLeavedMethods.set(n, l.bind(s)) : d.userMessageArrived && this.userMessageArrivedMethods.push({
+        method: l.bind(s),
         config: d.userMessageArrived
       });
     }
-    return this.doSendMessage(D({
+    return this.doSendMessage(C({
       definition: { objId: n, className: o, methods: u }
     })), e;
   }
   createFunctionProxy(e, t, s) {
     const o = `${s}`, n = { original: e, config: t };
-    this.distributedFuncs.set(o, n), n.promise = new Promise((f, u) => {
-      n.resolve = f, n.reject = u;
+    this.distributedFuncs.set(o, n), n.promise = new Promise((c, u) => {
+      n.resolve = c, n.reject = u;
     });
     const r = this;
     return function() {
       if (r.ws === null) {
         if (e) return e.apply(null, arguments);
       } else {
-        let f = null, u = "BROADCAST";
-        return t.distributed && !t.distributed.serialized && (f = e.apply(null, arguments), u = "OTHERCAST"), r.sendMessage(T(
+        let c = null, u = "BROADCAST";
+        return t.distributed && !t.distributed.serialized && (c = e.apply(null, arguments), u = "OTHERCAST"), r.sendMessage(T(
           u,
           { funcId: s, args: Array.from(arguments) }
-        )), f ?? n.promise;
+        )), c ?? n.promise;
       }
     };
   }
   createMethodProxy(e, t, s, o) {
     const n = `${s}:${o}`, r = { original: e, config: t };
-    this.shareOrNotifyMethods.set(n, r), r.promise = new Promise((u, M) => {
-      r.resolve = u, r.reject = M;
+    this.shareOrNotifyMethods.set(n, r), r.promise = new Promise((u, m) => {
+      r.resolve = u, r.reject = m;
     });
-    const f = this;
+    const c = this;
     return function() {
-      if (f.ws === null) {
-        if (e) return e.apply(null, [...arguments, f]);
+      if (c.ws === null) {
+        if (e) return e.apply(null, [...arguments, c]);
       } else {
-        let u = null, M = "BROADCAST";
-        const h = f.shareObjects.get(s), c = h.revision;
-        return t.distributed && !t.distributed.serialized && (u = e.apply(null, [...arguments, f]), M = "OTHERCAST"), t.changeState && (h.revision++, h.update++), f.sendMessage(U(
-          M,
+        let u = null, m = "BROADCAST";
+        const h = c.shareObjects.get(s), l = h.revision;
+        return t.distributed && !t.distributed.serialized && (u = e.apply(null, [...arguments, c]), m = "OTHERCAST"), t.changeState && (h.revision++, h.update++), c.sendMessage(U(
+          m,
           {
             objId: s,
-            objRevision: c,
+            objRevision: l,
             methodId: o,
             args: Array.from(arguments)
           }
@@ -593,8 +590,8 @@ class Z extends C {
         if (t.update == 0) continue;
         const s = this.getStateMethods.get(e);
         if (!s) continue;
-        const o = s.config, n = performance.now(), r = s.firstObjModified, f = s.lastObjModified;
-        (n - f >= (o.minInterval || 0) || n - r >= (o.maxInterval || 0)) && (this.doSendMessage($({
+        const o = s.config, n = performance.now(), r = s.firstObjModified, c = s.lastObjModified;
+        (n - c >= (o.minInterval || 0) || n - r >= (o.maxInterval || 0)) && (this.doSendMessage($({
           objId: e,
           objRevision: t.revision,
           state: s.method(this)
@@ -605,7 +602,7 @@ class Z extends C {
     return e.apply(null, t);
   }
   isSelfPeerHost() {
-    for (const e of this.peers.values())
+    for (const e of this.otherPeers.values())
       if (e.order < this.selfPeer.order) return !1;
     return !0;
   }
@@ -627,14 +624,14 @@ export {
   V as RoomProfileUpdated,
   J as SetState,
   Y as UserMessageArrived,
-  A as newDefineFunction,
-  D as newDefineObject,
-  I as newEnterRoom,
+  I as newDefineFunction,
+  C as newDefineObject,
+  D as newEnterRoom,
   T as newInvokeFunction,
   U as newInvokeMethod,
   L as newLeaveRoom,
-  _ as newPing,
+  A as newPing,
   $ as newUpdateObjectState,
   S as newUpdatePeerProfile,
-  P as newUpdateRoomProfile
+  g as newUpdateRoomProfile
 };

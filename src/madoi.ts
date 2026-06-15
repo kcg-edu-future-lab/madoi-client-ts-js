@@ -1,4 +1,4 @@
-import { TypedCustomEventListenerOrObject, TypedCustomEventTarget } from "tcet";
+import { CustomEventListenerOrEventListenerObject, TypedCustomEventTarget } from "tcet";
 
 // ---- message definitions ----
 export type CastType =
@@ -445,33 +445,24 @@ export interface EnterRoomAllowedDetail{
 	selfPeer: PeerInfo;
 	otherPeers: PeerInfo[];
 }
-export type EnterRoomAllowedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomAllowedDetail>;
 export interface EnterRoomDeniedDetail{
 	message: string;
 }
-export type EnterRoomDeniedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomDeniedDetail>;
-export interface LeaveRoomDoneDetail{
-}
-export type LeaveRoomDoneListenerOrObject = TypedCustomEventListenerOrObject<Madoi, LeaveRoomDoneDetail>;
 export interface RoomProfileUpdatedDetail{
 	updates?: {[key: string]: any};
 	deletes?: string[];
 }
-export type RoomProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, RoomProfileUpdatedDetail>;
 export interface PeerEnteredDetail{
 	peer: PeerInfo;
 }
-export type PeerEnteredListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerEnteredDetail>;
 export interface PeerLeavedDetail{
 	peerId: string;
 }
-export type PeerLeavedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerLeavedDetail>;
 export interface PeerProfileUpdatedDetail{
 	peerId: string;
 	updates?: {[key: string]: any};
 	deletes?: string[];
 }
-export type PeerProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerProfileUpdatedDetail>;
 export interface UserMessageDetail<T>{
 	type: string;
 	sender?: string;
@@ -482,15 +473,11 @@ export interface UserMessageDetail<T>{
 interface ErrorDetail{
 	error: any;
 }
-export type ErrorListenerOrObject = TypedCustomEventListenerOrObject<Madoi, ErrorDetail>;
-
-export type UserMessageListenerOrObject<D> =
-	TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 
 export class Madoi extends TypedCustomEventTarget<Madoi, {
 	enterRoomAllowed: EnterRoomAllowedDetail,
 	enterRoomDenied: EnterRoomDeniedDetail,
-	leaveRoomDone: LeaveRoomDoneDetail,
+	leaveRoomDone: void,
 	roomProfileUpdated: RoomProfileUpdatedDetail,
 	peerEntered: PeerEnteredDetail,
 	peerProfileUpdated: PeerProfileUpdatedDetail,
@@ -590,7 +577,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		for(const [_, f] of this.peerProfileUpdatedMethods){
 			f(v, this);
 		}
-		this.dispatchCustomEvent("peerProfileUpdated", v);
+		this.dispatchEvent("peerProfileUpdated", {detail: v});
 	}
 
 	removeSelfPeerProfile(name: string){
@@ -602,7 +589,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		for(const [_, f] of this.peerProfileUpdatedMethods){
 			f(v, this);
 		}
-		this.dispatchCustomEvent("peerProfileUpdated", v);
+		this.dispatchEvent("peerProfileUpdated", {detail: v});
 	}
 
 	getOtherPeers(){
@@ -676,7 +663,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			for(const p of m.otherPeers){
 				this.otherPeers.set(p.id, p);
 			}
-			this.dispatchCustomEvent("enterRoomAllowed", m);
+			this.dispatchEvent("enterRoomAllowed", {detail: m});
 			if(msg.histories) for(const h of msg.histories){
 				this.data(h);
 			}
@@ -686,12 +673,12 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			for(const [_, f] of this.enterRoomDeniedMethods){
 				f(d, this);
 			}
-			this.dispatchCustomEvent("enterRoomDenied", d);
+			this.dispatchEvent("enterRoomDenied", {detail: d});
 		} else if(msg.type == "LeaveRoomDone"){
 			for(const [_, f] of this.leaveRoomDoneMethods){
 				f(this);
 			}
-			this.dispatchCustomEvent("leaveRoomDone");
+			this.dispatchEvent("leaveRoomDone");
 		} else if(msg.type === "UpdateRoomProfile"){
 			const m = msg as UpdateRoomProfile;
 			if(m.updates) for(const [key, value] of Object.entries(m.updates)) {
@@ -704,21 +691,21 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			for(const [_, f] of this.roomProfileUpdatedMethods){
 				f(v, this);
 			}
-			this.dispatchCustomEvent("roomProfileUpdated", v);
+			this.dispatchEvent("roomProfileUpdated", {detail: v});
 		} else if(msg.type === "PeerEntered"){
 			const m: PeerEnteredDetail = msg as PeerEntered;
 			this.otherPeers.set(m.peer.id, m.peer);
 			for(const [_, f] of this.peerEnteredMethods){
 				f(m, this);
 			}
-			this.dispatchCustomEvent("peerEntered", m);
+			this.dispatchEvent("peerEntered", {detail: m});
 		} else if(msg.type === "PeerLeaved"){
 			const m: PeerLeavedDetail = msg as PeerLeaved;
 			this.otherPeers.delete(msg.peerId);
 			for(const [_, f] of this.peerLeavedMethods){
 				f(m, this);
 			}
-			this.dispatchCustomEvent("peerLeaved", m);
+			this.dispatchEvent("peerLeaved", {detail: m});
 		} else if(msg.type === "UpdatePeerProfile"){
 			const p = this.otherPeers.get(msg.sender!);
 			if(msg.sender && p){
@@ -732,7 +719,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 				for(const [_, f] of this.peerProfileUpdatedMethods){
 					f(v, this);
 				}
-				this.dispatchCustomEvent("peerProfileUpdated", v);
+				this.dispatchEvent("peerProfileUpdated", {detail: v});
 			}
 		} else if(msg.type === "InvokeFunction"){
 			const id = `${msg.funcId}`;
@@ -792,7 +779,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 					mc.method(m, this);
 				}
 			}
-			this.dispatchEvent(new CustomEvent(msg.type, {detail: msg}));
+			this.dispatchEvent(new CustomEvent(msg.type, {detail: msg}) as any);
 		} else{
 			console.warn("Unknown message type.", msg);
 		}
@@ -868,14 +855,14 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			throw new Error("システムメッセージは送信できません。");
 		this.doSendMessage(msg);
 	}
-	addReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>){
+	addReceiver<D>(type: string, listener: CustomEventListenerOrEventListenerObject<D>){
 		if(this.isSystemMessageType(type))
 			throw new Error("システムメッセージのレシーバは登録できません。");
-		this.addEventListener(type as any, listener as EventListener);
+		this.addEventListener(type as any, listener as any);
 	}
 
-	removeReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>){
-		this.removeEventListener(type as any, listener as EventListener);
+	removeReceiver<D>(type: string, listener: CustomEventListenerOrEventListenerObject<D>){
+		this.removeEventListener(type as any, listener as any);
 	}
 
 	private replacer(_: any, value: any) {

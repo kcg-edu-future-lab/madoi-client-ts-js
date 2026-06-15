@@ -1,4 +1,4 @@
-import { TypedCustomEventListenerOrObject, TypedCustomEventTarget } from "tcet";
+import { CustomEventListenerOrEventListenerObject, TypedCustomEventTarget } from "tcet";
 export type CastType = "UNICAST" | "MULTICAST" | "BROADCAST" | "SELFCAST" | "OTHERCAST" | "PEERTOSERVER" | "SERVERTOPEER";
 export interface Message {
     type: string;
@@ -244,29 +244,21 @@ export interface EnterRoomAllowedDetail {
     selfPeer: PeerInfo;
     otherPeers: PeerInfo[];
 }
-export type EnterRoomAllowedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomAllowedDetail>;
 export interface EnterRoomDeniedDetail {
     message: string;
 }
-export type EnterRoomDeniedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, EnterRoomDeniedDetail>;
-export interface LeaveRoomDoneDetail {
-}
-export type LeaveRoomDoneListenerOrObject = TypedCustomEventListenerOrObject<Madoi, LeaveRoomDoneDetail>;
 export interface RoomProfileUpdatedDetail {
     updates?: {
         [key: string]: any;
     };
     deletes?: string[];
 }
-export type RoomProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, RoomProfileUpdatedDetail>;
 export interface PeerEnteredDetail {
     peer: PeerInfo;
 }
-export type PeerEnteredListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerEnteredDetail>;
 export interface PeerLeavedDetail {
     peerId: string;
 }
-export type PeerLeavedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerLeavedDetail>;
 export interface PeerProfileUpdatedDetail {
     peerId: string;
     updates?: {
@@ -274,7 +266,6 @@ export interface PeerProfileUpdatedDetail {
     };
     deletes?: string[];
 }
-export type PeerProfileUpdatedListenerOrObject = TypedCustomEventListenerOrObject<Madoi, PeerProfileUpdatedDetail>;
 export interface UserMessageDetail<T> {
     type: string;
     sender?: string;
@@ -285,12 +276,10 @@ export interface UserMessageDetail<T> {
 interface ErrorDetail {
     error: any;
 }
-export type ErrorListenerOrObject = TypedCustomEventListenerOrObject<Madoi, ErrorDetail>;
-export type UserMessageListenerOrObject<D> = TypedCustomEventListenerOrObject<Madoi, UserMessageDetail<D>> | null;
 export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     enterRoomAllowed: EnterRoomAllowedDetail;
     enterRoomDenied: EnterRoomDeniedDetail;
-    leaveRoomDone: LeaveRoomDoneDetail;
+    leaveRoomDone: void;
     roomProfileUpdated: RoomProfileUpdatedDetail;
     peerEntered: PeerEnteredDetail;
     peerProfileUpdated: PeerProfileUpdatedDetail;
@@ -317,7 +306,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     private ws;
     private room;
     private selfPeer;
-    private peers;
+    private otherPeers;
     private currentSenderId;
     constructor(roomIdOrUrl: string, authToken: string, selfPeer?: {
         id: string;
@@ -330,18 +319,13 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
             [key: string]: any;
         };
     });
-    getRoomId(): string;
-    getRoomProfile(): {
-        [key: string]: any;
-    };
-    setRoomProfile(name: string, value: any): void;
+    getRoom(): RoomInfo;
+    updateRoomProfile(name: string, value: any): void;
     removeRoomProfile(name: string): void;
-    getSelfPeerId(): string;
-    getSelfPeerProfile(): {
-        [key: string]: any;
-    };
+    getSelfPeer(): PeerInfo;
     updateSelfPeerProfile(name: string, value: any): void;
     removeSelfPeerProfile(name: string): void;
+    getOtherPeers(): Map<string, PeerInfo>;
     isMessageProcessing(): boolean;
     getCurrentSender(): PeerInfo | null | undefined;
     isCurrentSenderSelf(): boolean;
@@ -360,8 +344,8 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     broadcast(type: string, content: any): void;
     othercast(type: string, content: any): void;
     sendMessage(msg: Message): void;
-    addReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>): void;
-    removeReceiver<D>(type: string, listener: UserMessageListenerOrObject<D>): void;
+    addReceiver<D>(type: string, listener: CustomEventListenerOrEventListenerObject<D>): void;
+    removeReceiver<D>(type: string, listener: CustomEventListenerOrEventListenerObject<D>): void;
     private replacer;
     private doSendMessage;
     registerFunction<T extends Function>(func: T, config?: MethodConfig): T;
