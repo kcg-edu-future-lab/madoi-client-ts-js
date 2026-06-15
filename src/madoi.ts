@@ -299,21 +299,25 @@ type MethodConfig = {
 	hostOnly?: {};
 }
 
-function addMethodConfig(config: MethodConfig){
-	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
-		target[name].madoiMethodConfig_ = {
-			...(target[name].madoiMethodConfig_ ? target[name].madoiMethodConfig_ : {}),
-			...config};
-	}
+export interface DecoratedMethod extends FunctionConstructor{
+	madoiMethodConfig_: MethodConfig;
 }
 
-export interface DecoratedMethod{
-	madoiMethodConfig_: MethodConfig;
+function addMethodConfig(config: MethodConfig){
+	return <This, Args extends any[], Return>(
+		target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext
+	) => {
+		const t: DecoratedMethod = target as any;
+		t.madoiMethodConfig_ = {
+			...(t.madoiMethodConfig_ ? t.madoiMethodConfig_ : {}),
+			...config};
+		return target;
+	};
 }
 
 // Decorator
 export function ClassName(name: string){
-	return (target: any) => {
+	return (target: any, _context: ClassDecoratorContext) => {
 		target.madoiClassConfig_ = {className: name};
 	};
 }
