@@ -597,7 +597,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 	}
 
 	getOtherPeers(){
-		return this.otherPeers;
+		return Array.from(this.otherPeers.values());
 	}
 
 	isMessageProcessing(){
