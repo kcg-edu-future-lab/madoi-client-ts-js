@@ -325,7 +325,7 @@ export declare class Madoi extends TypedCustomEventTarget<Madoi, {
     getSelfPeer(): PeerInfo;
     updateSelfPeerProfile(name: string, value: any): void;
     removeSelfPeerProfile(name: string): void;
-    getOtherPeers(): Map<string, PeerInfo>;
+    getOtherPeers(): PeerInfo[];
     isMessageProcessing(): boolean;
     getCurrentSender(): PeerInfo | null | undefined;
     isCurrentSenderSelf(): boolean;
