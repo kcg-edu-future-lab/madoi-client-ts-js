@@ -38,11 +38,6 @@ export interface PeerToServerMessage extends Message{
 	castType: "PEERTOSERVER";
 	recipients: undefined;
 }
-const peerToServerMessageDefault = {
-	sender: "__PEER__",
-	castType: "PEERTOSERVER" as "PEERTOSERVER",
-	recipients: undefined
-};
 
 export interface PeerToPeerMessage extends Message{
 	castType: "UNICAST" | "MULTICAST" | "BROADCAST" | "SELFCAST" | "OTHERCAST";
@@ -52,31 +47,15 @@ export interface BroadcastMessage extends PeerToPeerMessage{
 	castType: "BROADCAST";
 	recipients: undefined;
 }
-const broadcastMessageDefault = {
-	sender: "__PEER__",
-	castType: "BROADCAST" as "BROADCAST",
-	recipients: undefined
-};
 
 export interface BroadcastOrOthercastMessage extends PeerToPeerMessage{
 	castType: "BROADCAST" | "OTHERCAST";
 	recipients: undefined;
 }
-const broadcastOrOthercastMessageDefault = {
-	sender: "__PEER__",
-	recipients: undefined
-};
 
 export interface Ping extends PeerToServerMessage{
 	type: "Ping";
 	body: object | undefined;
-}
-export function newPing(body = undefined): Ping{
-	return {
-		type: "Ping",
-		...peerToServerMessageDefault,
-		body: body
-	};
 }
 
 export interface Pong extends ServerToPeerMessage{
@@ -93,13 +72,6 @@ export interface EnterRoomBody{
 }
 export interface EnterRoom extends PeerToServerMessage, EnterRoomBody{
 	type: "EnterRoom";
-}
-export function newEnterRoom(body: EnterRoomBody): EnterRoom{
-	return {
-		type: "EnterRoom",
-		...peerToServerMessageDefault,
-		...body
-	};
 }
 
 export interface EnterRoomAllowed extends ServerToPeerMessage{
@@ -119,13 +91,7 @@ export interface LeaveRoomBody{
 export interface LeaveRoom extends PeerToServerMessage, LeaveRoomBody{
 	type: "LeaveRoom";
 }
-export function newLeaveRoom(body: LeaveRoomBody): LeaveRoom{
-	return {
-		type: "LeaveRoom",
-		...peerToServerMessageDefault,
-		...body
-	};
-}
+
 export interface LeaveRoomDone extends ServerToPeerMessage{
 	type: "LeaveRoomDone";
 }
@@ -136,13 +102,6 @@ export interface UpdateRoomProfileBody{
 }
 export interface UpdateRoomProfile extends BroadcastMessage, UpdateRoomProfileBody{
 	type: "UpdateRoomProfile"
-}
-export function newUpdateRoomProfile(body: UpdateRoomProfileBody): UpdateRoomProfile{
-	return {
-		type: "UpdateRoomProfile",
-		...broadcastMessageDefault,
-		...body
-	};
 }
 
 export interface PeerEntered extends ServerToPeerMessage{
@@ -162,13 +121,6 @@ export interface UpdatePeerProfileBody{
 export interface UpdatePeerProfile extends BroadcastMessage, UpdatePeerProfileBody{
 	type: "UpdatePeerProfile"
 }
-export function newUpdatePeerProfile(body: UpdatePeerProfileBody): UpdatePeerProfile{
-	return {
-		type: "UpdatePeerProfile",
-		...broadcastMessageDefault,
-		...body
-	};
-}
 
 export interface FunctionDefinition{
 	funcId: number;
@@ -180,13 +132,6 @@ export interface DefineFunctionBody{
 }
 export interface DefineFunction extends PeerToServerMessage, DefineFunctionBody{
 	type: "DefineFunction";
-}
-export function newDefineFunction(body: DefineFunctionBody): DefineFunction{
-	return {
-		type: "DefineFunction",
-		...peerToServerMessageDefault,
-		...body
-	};
 }
 export interface MethodDefinition{
 	methodId: number;
@@ -204,13 +149,6 @@ export interface DefineObjectBody{
 export interface DefineObject extends PeerToServerMessage, DefineObjectBody{
 	type: "DefineObject";
 }
-export function newDefineObject(body: DefineObjectBody): DefineObject{
-	return {
-		type: "DefineObject",
-		...peerToServerMessageDefault,
-		...body
-	}
-}
 
 export interface InvokeFunctionBody{
 	funcId: number;
@@ -219,14 +157,7 @@ export interface InvokeFunctionBody{
 export interface InvokeFunction extends BroadcastOrOthercastMessage, InvokeFunctionBody{
 	type: "InvokeFunction";
 }
-export function newInvokeFunction(castType: "BROADCAST" | "OTHERCAST", body: InvokeFunctionBody): InvokeFunction{
-	return {
-		type: "InvokeFunction",
-		castType: castType,
-		...broadcastOrOthercastMessageDefault,
-		...body
-	};
-}
+
 export interface UpdateObjectStateBody{
 	objId: number;
 	objRevision: number;
@@ -235,13 +166,7 @@ export interface UpdateObjectStateBody{
 export interface UpdateObjectState extends PeerToServerMessage{
 	type: "UpdateObjectState";
 }
-export function newUpdateObjectState(body: UpdateObjectStateBody): UpdateObjectState{
-	return {
-		type: "UpdateObjectState",
-		...peerToServerMessageDefault,
-		...body
-	};
-}
+
 export interface InvokeMethodBody{
 	objId: number;
 	objRevision: number;  // メソッド実行前のクライアントのオブジェクトリビジョン
@@ -251,14 +176,6 @@ export interface InvokeMethodBody{
 }
 export interface InvokeMethod extends BroadcastOrOthercastMessage, InvokeMethodBody{
 	type: "InvokeMethod";
-}
-export function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: InvokeMethodBody): InvokeMethod{
-	return {
-		type: "InvokeMethod",
-		castType: castType,
-		...broadcastOrOthercastMessageDefault,
-		...body
-	};
 }
 
 export interface UserMessage<C> extends Message{
@@ -279,6 +196,99 @@ export type DownStreamMessageType =
 	UserMessage<any>;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
 
+
+//---- utilities for messages ----
+
+const peerToServerMessageDefault = {
+	sender: "__PEER__",
+	castType: "PEERTOSERVER" as "PEERTOSERVER",
+	recipients: undefined
+};
+
+const broadcastMessageDefault = {
+	sender: "__PEER__",
+	castType: "BROADCAST" as "BROADCAST",
+	recipients: undefined
+};
+
+const broadcastOrOthercastMessageDefault = {
+	sender: "__PEER__",
+	recipients: undefined
+};
+
+function newPing(body = undefined): Ping{
+	return {
+		type: "Ping",
+		...peerToServerMessageDefault,
+		body: body
+	};
+}
+
+function newEnterRoom(body: EnterRoomBody): EnterRoom{
+	return {
+		type: "EnterRoom",
+		...peerToServerMessageDefault,
+		...body
+	};
+}
+
+function newUpdateRoomProfile(body: UpdateRoomProfileBody): UpdateRoomProfile{
+	return {
+		type: "UpdateRoomProfile",
+		...broadcastMessageDefault,
+		...body
+	};
+}
+
+function newUpdatePeerProfile(body: UpdatePeerProfileBody): UpdatePeerProfile{
+	return {
+		type: "UpdatePeerProfile",
+		...broadcastMessageDefault,
+		...body
+	};
+}
+
+function newDefineFunction(body: DefineFunctionBody): DefineFunction{
+	return {
+		type: "DefineFunction",
+		...peerToServerMessageDefault,
+		...body
+	};
+}
+
+function newDefineObject(body: DefineObjectBody): DefineObject{
+	return {
+		type: "DefineObject",
+		...peerToServerMessageDefault,
+		...body
+	}
+}
+
+function newInvokeFunction(castType: "BROADCAST" | "OTHERCAST", body: InvokeFunctionBody): InvokeFunction{
+	return {
+		type: "InvokeFunction",
+		castType: castType,
+		...broadcastOrOthercastMessageDefault,
+		...body
+	};
+}
+
+function newUpdateObjectState(body: UpdateObjectStateBody): UpdateObjectState{
+	return {
+		type: "UpdateObjectState",
+		...peerToServerMessageDefault,
+		...body
+	};
+}
+
+function newInvokeMethod(castType: "BROADCAST" | "OTHERCAST", body: InvokeMethodBody): InvokeMethod{
+	return {
+		type: "InvokeMethod",
+		castType: castType,
+		...broadcastOrOthercastMessageDefault,
+		...body
+	};
+}
 
 //---- decorators ----
 
