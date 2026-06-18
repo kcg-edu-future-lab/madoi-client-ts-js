@@ -1,4 +1,4 @@
-import { CustomEventListenerOrEventListenerObject, TypedCustomEventTarget } from "tcet";
+import { CustomEventListenerOrEventListenerObject, KeyOf, TypedCustomEventTarget } from "tcet";
 
 // ---- message definitions ----
 export type CastType =
@@ -17,15 +17,17 @@ export interface Message{
 export interface RoomSpec{
 	maxLog: number;
 }
-export interface RoomInfo{
+type ProfileValue = object | number | string | undefined;
+export type Profile = {[key: string]: ProfileValue};
+export interface RoomInfo<T extends Profile>{
 	id: string;
 	spec: RoomSpec;
-	profile: {[key: string]: any};
+	profile: T;
 }
-export interface PeerInfo{
+export interface PeerInfo<T extends Profile>{
 	id: string;
 	order: number;
-	profile: {[key: string]: any};
+	profile: T;
 }
 
 // CastType別メッセージ用interface。
@@ -63,22 +65,23 @@ export interface Pong extends ServerToPeerMessage{
 	body: object | undefined;
 }
 
-export interface EnterRoomBody{
-	room?: {
+export interface EnterRoomBody<TP extends Profile, TR extends Profile>{
+	room: {
 		spec: RoomSpec;
-		profile: {[key: string]: any};
+		profile: TR;
 	};
-	selfPeer?: PeerInfo;
+	selfPeer: PeerInfo<TP>;
 }
-export interface EnterRoom extends PeerToServerMessage, EnterRoomBody{
+export interface EnterRoom<TP extends Profile, TR extends Profile>
+extends PeerToServerMessage, EnterRoomBody<TP, TR>{
 	type: "EnterRoom";
 }
 
-export interface EnterRoomAllowed extends ServerToPeerMessage{
+export interface EnterRoomAllowed<TP extends Profile, TR extends Profile> extends ServerToPeerMessage{
 	type: "EnterRoomAllowed";
-	room: RoomInfo;
-	selfPeer: PeerInfo;
-	otherPeers: PeerInfo[];
+	room: RoomInfo<TR>;
+	selfPeer: PeerInfo<TP>;
+	otherPeers: PeerInfo<TP>[];
 	histories: StoredMessageType[];
 }
 export interface EnterRoomDenied extends ServerToPeerMessage{
@@ -96,17 +99,17 @@ export interface LeaveRoomDone extends ServerToPeerMessage{
 	type: "LeaveRoomDone";
 }
 
-export interface UpdateRoomProfileBody{
-	updates?: {[key: string]: any};
-	deletes?: string[];
+interface UpdateRoomProfileBody<T extends Profile>{
+	updates?: Partial<T>;
+	deletes?: KeyOf<T>[];
 }
-export interface UpdateRoomProfile extends BroadcastMessage, UpdateRoomProfileBody{
+export interface UpdateRoomProfile<T extends Profile> extends BroadcastMessage, UpdateRoomProfileBody<T>{
 	type: "UpdateRoomProfile"
 }
 
-export interface PeerEntered extends ServerToPeerMessage{
+export interface PeerEntered<T extends Profile> extends ServerToPeerMessage{
 	type: "PeerEntered";
-	peer: PeerInfo;
+	peer: PeerInfo<T>;
 }
 
 export interface PeerLeaved extends ServerToPeerMessage{
@@ -114,11 +117,11 @@ export interface PeerLeaved extends ServerToPeerMessage{
 	peerId: string;
 }
 
-export interface UpdatePeerProfileBody{
-	updates?: {[key: string]: any};
-	deletes?: string[];
+export interface UpdatePeerProfileBody<T extends Profile>{
+	updates?: Partial<T>;
+	deletes?: KeyOf<T>[];
 }
-export interface UpdatePeerProfile extends BroadcastMessage, UpdatePeerProfileBody{
+export interface UpdatePeerProfile<T extends Profile> extends BroadcastMessage, UpdatePeerProfileBody<T>{
 	type: "UpdatePeerProfile"
 }
 
@@ -182,16 +185,16 @@ export interface UserMessage<C> extends Message{
 	content: C;
 }
 
-export type UpstreamMessageType =
+export type UpstreamMessageType<TP extends Profile, TR extends Profile> =
 	Ping |
-	EnterRoom | LeaveRoom |
-	UpdateRoomProfile | UpdatePeerProfile |
+	EnterRoom<TP, TR> | LeaveRoom |
+	UpdateRoomProfile<Profile> | UpdatePeerProfile<Profile> |
 	DefineFunction | DefineObject | 
 	InvokeFunction | UpdateObjectState | InvokeMethod;
-export type DownStreamMessageType =
+export type DownStreamMessageType<TP extends Profile, TR extends Profile> =
 	Pong |
-	EnterRoomAllowed | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile |
-	PeerEntered | PeerLeaved | UpdatePeerProfile |
+	EnterRoomAllowed<TP, TR> | EnterRoomDenied | LeaveRoomDone | UpdateRoomProfile<Profile> |
+	PeerEntered<TP> | PeerLeaved | UpdatePeerProfile<TP> |
 	InvokeFunction | UpdateObjectState | InvokeMethod |
 	UserMessage<any>;
 export type StoredMessageType = InvokeMethod | InvokeFunction | UpdateObjectState;
@@ -224,7 +227,8 @@ function newPing(body = undefined): Ping{
 	};
 }
 
-function newEnterRoom(body: EnterRoomBody): EnterRoom{
+function newEnterRoom<TP extends Profile, TR extends Profile>(
+	body: EnterRoomBody<TP, TR>): EnterRoom<TP, TR>{
 	return {
 		type: "EnterRoom",
 		...peerToServerMessageDefault,
@@ -232,7 +236,7 @@ function newEnterRoom(body: EnterRoomBody): EnterRoom{
 	};
 }
 
-function newUpdateRoomProfile(body: UpdateRoomProfileBody): UpdateRoomProfile{
+function newUpdateRoomProfile<T extends Profile>(body: UpdateRoomProfileBody<T>): UpdateRoomProfile<T>{
 	return {
 		type: "UpdateRoomProfile",
 		...broadcastMessageDefault,
@@ -240,7 +244,7 @@ function newUpdateRoomProfile(body: UpdateRoomProfileBody): UpdateRoomProfile{
 	};
 }
 
-function newUpdatePeerProfile(body: UpdatePeerProfileBody): UpdatePeerProfile{
+function newUpdatePeerProfile<T extends Profile>(body: UpdatePeerProfileBody<T>): UpdatePeerProfile<T>{
 	return {
 		type: "UpdatePeerProfile",
 		...broadcastMessageDefault,
@@ -454,28 +458,28 @@ interface MethodEntry {
 }
 
 //---- events ----
-export interface EnterRoomAllowedDetail{
-	room: RoomInfo;
-	selfPeer: PeerInfo;
-	otherPeers: PeerInfo[];
+export interface EnterRoomAllowedDetail<TP extends Profile, TR extends Profile>{
+	room: RoomInfo<TR>;
+	selfPeer: PeerInfo<TP>;
+	otherPeers: PeerInfo<TP>[];
 }
 export interface EnterRoomDeniedDetail{
 	message: string;
 }
-export interface RoomProfileUpdatedDetail{
-	updates?: {[key: string]: any};
-	deletes?: string[];
+export interface RoomProfileUpdatedDetail<T extends Profile>{
+	updates?: Partial<T>;
+	deletes?: KeyOf<T>[];
 }
-export interface PeerEnteredDetail{
-	peer: PeerInfo;
+export interface PeerEnteredDetail<T extends Profile>{
+	peer: PeerInfo<T>;
 }
 export interface PeerLeavedDetail{
 	peerId: string;
 }
-export interface PeerProfileUpdatedDetail{
+export interface PeerProfileUpdatedDetail<T extends Profile>{
 	peerId: string;
-	updates?: {[key: string]: any};
-	deletes?: string[];
+	updates?: Partial<T>;
+	deletes?: KeyOf<T>[];
 }
 export interface UserMessageDetail<T>{
 	type: string;
@@ -488,13 +492,26 @@ interface ErrorDetail{
 	error: any;
 }
 
-export class Madoi extends TypedCustomEventTarget<Madoi, {
-	enterRoomAllowed: EnterRoomAllowedDetail,
+interface InitialRoomInfo<T extends Profile>{
+	spec?: RoomSpec;
+	profile: T;
+}
+interface InitialPeerInfo<T extends Profile>{
+	id?: string;
+	profile: T;
+}
+
+export const PEERINFO_DEFAULT = {profile: {}};
+export const ROOMINFO_DEFAULT = {profile: {}};
+
+export class Madoi<TP extends Profile = {}, TR extends Profile = {}>
+extends TypedCustomEventTarget<Madoi<TP, TR>, {
+	enterRoomAllowed: EnterRoomAllowedDetail<TP, TR>,
 	enterRoomDenied: EnterRoomDeniedDetail,
 	leaveRoomDone: void,
-	roomProfileUpdated: RoomProfileUpdatedDetail,
-	peerEntered: PeerEnteredDetail,
-	peerProfileUpdated: PeerProfileUpdatedDetail,
+	roomProfileUpdated: RoomProfileUpdatedDetail<TR>,
+	peerEntered: PeerEnteredDetail<TP>,
+	peerProfileUpdated: PeerProfileUpdatedDetail<TP>,
 	peerLeaved: PeerLeavedDetail,
 	error: ErrorDetail
 }>{
@@ -508,34 +525,35 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	// annotated methods
 	private getStateMethods = new Map<number, {
-		method: (madoi: Madoi)=>any, config: GetStateConfig,
+		method: (madoi: Madoi<TP, TR>)=>any, config: GetStateConfig,
 		firstObjModified: number, lastObjModified: number}>();
-	private setStateMethods = new Map<number, (state: any, madoi: Madoi)=>void>(); // objectId -> @SetState method
-	private beforeEnterRoomMethods = new Map<number, (selfProfile: {[key: string]: string}, madoi: Madoi)=>void>();
-	private enterRoomAllowedMethods = new Map<number, (detail: EnterRoomAllowedDetail, madoi: Madoi)=>void>();
-	private enterRoomDeniedMethods = new Map<number, (detail: EnterRoomDeniedDetail, madoi: Madoi)=>void>();
-	private leaveRoomDoneMethods = new Map<number, (madoi: Madoi)=>void>();
-	private roomProfileUpdatedMethods = new Map<number, (detail: RoomProfileUpdatedDetail, madoi: Madoi)=>void>();
-	private peerEnteredMethods = new Map<number, (detail: PeerEnteredDetail, madoi: Madoi)=>void>();
-	private peerLeavedMethods = new Map<number, (detail: PeerLeavedDetail, madoi: Madoi)=>void>();
-	private peerProfileUpdatedMethods = new Map<number, (detail: PeerProfileUpdatedDetail, madoi: Madoi)=>void>();
+	private setStateMethods = new Map<number, (state: any, madoi: Madoi<TP, TR>)=>void>(); // objectId -> @SetState method
+	private beforeEnterRoomMethods = new Map<number, (selfProfile: TP, madoi: Madoi<TP, TR>)=>void>();
+	private enterRoomAllowedMethods = new Map<number, (detail: EnterRoomAllowedDetail<TP, TR>, madoi: Madoi<TP, TR>)=>void>();
+	private enterRoomDeniedMethods = new Map<number, (detail: EnterRoomDeniedDetail, madoi: Madoi<TP, TR>)=>void>();
+	private leaveRoomDoneMethods = new Map<number, (madoi: Madoi<TP, TR>)=>void>();
+	private roomProfileUpdatedMethods = new Map<number, (detail: RoomProfileUpdatedDetail<TR>, madoi: Madoi<TP, TR>)=>void>();
+	private peerEnteredMethods = new Map<number, (detail: PeerEnteredDetail<TP>, madoi: Madoi<TP, TR>)=>void>();
+	private peerLeavedMethods = new Map<number, (detail: PeerLeavedDetail, madoi: Madoi<TP, TR>)=>void>();
+	private peerProfileUpdatedMethods = new Map<number, (detail: PeerProfileUpdatedDetail<TP>, madoi: Madoi<TP, TR>)=>void>();
 	private userMessageArrivedMethods: {
-		method: (detail: UserMessageDetail<any>, madoi: Madoi)=>void,
+		method: (detail: UserMessageDetail<any>, madoi: Madoi<TP, TR>)=>void,
 		config: UserMessageArrivedConfig}[] = [];
 
 	private url: string;
 	private ws: WebSocket | null = null;
-	private room: RoomInfo = {id: "", spec: {maxLog: 1000}, profile: {}};
-	private selfPeer: PeerInfo = {id: "", order: -1, profile: {}};
-	private otherPeers = new Map<string, PeerInfo>();
+	private room: RoomInfo<TR>;
+	private selfPeer: PeerInfo<TP>;
+	private otherPeers = new Map<string, PeerInfo<TP>>();
 	private currentSenderId: string | null = null;
 
-	constructor(roomIdOrUrl: string, authToken: string,
-			selfPeer?: {id: string, profile: {[key: string]: any}},
-			room?: {spec: RoomSpec, profile: {[key: string]: any}}){
+	constructor(roomIdOrUrl: string, authToken: string, 
+			peerInfo: InitialPeerInfo<TP>,
+			roomInfo: InitialRoomInfo<TR>){
 		super();
-		if(room) this.room = {...this.room, ...room};
-		if(selfPeer) this.selfPeer = {...this.selfPeer, ...selfPeer, order: -1};
+
+		this.selfPeer = {id: "unknown", order: -1, ...peerInfo};
+		this.room = {id: "unknown", spec: {maxLog: 1000}, ...roomInfo};
 		this.interimQueue = new Array();
 		const sep = roomIdOrUrl.indexOf("?") != -1 ? "&" : "?";
 		if(roomIdOrUrl.match(/^wss?:\/\//)){
@@ -562,15 +580,13 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		return this.room;
 	}
 
-	updateRoomProfile(name: string, value: any){
-		const m: {[key: string]: any} = {};
-		m[name] = value;
+	updateRoomProfile(name: KeyOf<TR>, value: ProfileValue){
 		this.sendMessage(newUpdateRoomProfile(
-			{updates: m}
+			{updates: {[name]: value}}
 		));
 	}
 
-	removeRoomProfile(name: string){
+	removeRoomProfile(name: KeyOf<TR>){
 		this.sendMessage(newUpdateRoomProfile(
 			{deletes: [name]}
 		));
@@ -580,14 +596,13 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		return this.selfPeer;
 	}
 
-	updateSelfPeerProfile(name: string, value: any){
+	updateSelfPeerProfile<Name extends KeyOf<TP>>(name: Name, value: TP[Name]){
 		this.selfPeer.profile[name] = value;
-		const m: {[key: string]: any} = {};
-		m[name] = value;
+		const m = {[name]: value} as unknown as Partial<TP>;
 		this.sendMessage(newUpdatePeerProfile(
 			{updates: m}
 		));
-		const v: PeerProfileUpdatedDetail = {updates: m, peerId: this.selfPeer.id};
+		const v: PeerProfileUpdatedDetail<TP> = {updates: m, peerId: this.selfPeer.id};
 		for(const [_, f] of this.peerProfileUpdatedMethods){
 			f(v, this);
 		}
@@ -599,7 +614,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		this.sendMessage(newUpdatePeerProfile(
 			{deletes: [name]}
 		));
-		const v: PeerProfileUpdatedDetail = {deletes: [name], peerId: this.selfPeer.id};
+		const v: PeerProfileUpdatedDetail<TP> = {deletes: [name], peerId: this.selfPeer.id};
 		for(const [_, f] of this.peerProfileUpdatedMethods){
 			f(v, this);
 		}
@@ -665,10 +680,10 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		}
 	}
 
-	private data(msg: DownStreamMessageType){
+	private data(msg: DownStreamMessageType<TP, TR>){
 		if(msg.type == "Pong"){
 		} else if(msg.type === "EnterRoomAllowed"){
-			const m: EnterRoomAllowedDetail = msg as EnterRoomAllowed;
+			const m: EnterRoomAllowedDetail<TP, TR> = msg as EnterRoomAllowed<TP, TR>;
 			for(const [_, f] of this.enterRoomAllowedMethods){
 				f(m, this);
 			}
@@ -694,21 +709,19 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 			}
 			this.dispatchEvent("leaveRoomDone");
 		} else if(msg.type === "UpdateRoomProfile"){
-			const m = msg as UpdateRoomProfile;
-			if(m.updates) for(const [key, value] of Object.entries(m.updates)) {
-				this.room.profile[key] = value;
-			}
-			if(m.deletes) for(const key of m.deletes){
+			if(msg.updates) Object.assign(this.room.profile, msg.updates);
+			if(msg.deletes) for(const key of msg.deletes){
 				delete this.room.profile[key];
 			}
-			const v: RoomProfileUpdatedDetail = {updates: m.updates, deletes: m.deletes};
+			const v: RoomProfileUpdatedDetail<TR> = {
+				updates: msg.updates, deletes: msg.deletes};
 			for(const [_, f] of this.roomProfileUpdatedMethods){
 				f(v, this);
 			}
 			this.dispatchEvent("roomProfileUpdated", {detail: v});
 		} else if(msg.type === "PeerEntered"){
-			const m: PeerEnteredDetail = msg as PeerEntered;
-			this.otherPeers.set(m.peer.id, m.peer);
+			const m: PeerEnteredDetail<TP> = msg as PeerEntered<TP>;
+			this.otherPeers.set(msg.peer.id, msg.peer);
 			for(const [_, f] of this.peerEnteredMethods){
 				f(m, this);
 			}
@@ -723,13 +736,11 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 		} else if(msg.type === "UpdatePeerProfile"){
 			const p = this.otherPeers.get(msg.sender!);
 			if(msg.sender && p){
-				if(msg.updates) for(const [key, value] of Object.entries(msg.updates)) {
-					p.profile[key] = value;
-				}
+				if(msg.updates) Object.assign(p.profile, msg.updates);
 				if(msg.deletes) for(const key of msg.deletes){
 					delete p.profile[key];
 				}
-				const v: PeerProfileUpdatedDetail = {...msg, peerId: msg.sender};
+				const v: PeerProfileUpdatedDetail<TP> = {...msg, peerId: msg.sender};
 				for(const [_, f] of this.peerProfileUpdatedMethods){
 					f(v, this);
 				}
@@ -1134,7 +1145,7 @@ export class Madoi extends TypedCustomEventTarget<Madoi, {
 
 	private isSelfPeerHost(){
 		for(const p of this.otherPeers.values()){
-			if(p.order < this.selfPeer.order) return false;
+			if(p.order! < this.selfPeer.order!) return false;
 		}
 		return true;
 	}
