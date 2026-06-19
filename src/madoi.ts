@@ -649,6 +649,7 @@ extends TypedCustomEventTarget<Madoi<TP, TR>, {
 	}
 
 	private handleOnOpen(_e: Event){
+		console.info(`Madoi websocket connection opened.`);
 		this.connecting = true;
 
 		for(const [_, f] of this.beforeEnterRoomMethods){
@@ -662,7 +663,7 @@ extends TypedCustomEventTarget<Madoi<TP, TR>, {
 	}
 
 	private handleOnClose(e: CloseEvent){
-		console.debug(`websocket closed because: ${e.reason}.`);
+		console.info(`Madoi websocket connection closed because: ${e.reason}.`);
 		this.connecting = false;
 		this.ws = null;
 	}
