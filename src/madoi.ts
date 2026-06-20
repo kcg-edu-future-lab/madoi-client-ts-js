@@ -318,15 +318,11 @@ export interface DecoratedMethod extends FunctionConstructor{
 }
 
 function addMethodConfig(config: MethodConfig){
-	return <This, Args extends any[], Return>(
-		target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext
-	) => {
-		const t: DecoratedMethod = target as any;
-		t.madoiMethodConfig_ = {
-			...(t.madoiMethodConfig_ ? t.madoiMethodConfig_ : {}),
+	return (target: any, name: string, _descriptor: PropertyDescriptor) => {
+		target[name].madoiMethodConfig_ = {
+			...(target[name].madoiMethodConfig_ ? target[name].madoiMethodConfig_ : {}),
 			...config};
-		return target;
-	};
+	}
 }
 
 // Decorator

@@ -83,12 +83,11 @@ function I(i, e) {
   };
 }
 function u(i) {
-  return (e, t) => {
-    const s = e;
-    return s.madoiMethodConfig_ = {
-      ...s.madoiMethodConfig_ ? s.madoiMethodConfig_ : {},
+  return (e, t, s) => {
+    e[t].madoiMethodConfig_ = {
+      ...e[t].madoiMethodConfig_ ? e[t].madoiMethodConfig_ : {},
       ...i
-    }, e;
+    };
   };
 }
 function T(i) {
@@ -241,7 +240,7 @@ class W extends O {
     this.ws?.send(JSON.stringify(R()));
   }
   handleOnOpen(e) {
-    this.connecting = !0;
+    console.info("Madoi websocket connection opened."), this.connecting = !0;
     for (const [t, s] of this.beforeEnterRoomMethods)
       s(this.selfPeer.profile, this);
     this.doSendMessage(E({ room: this.room, selfPeer: this.selfPeer }));
@@ -250,7 +249,7 @@ class W extends O {
     this.interimQueue = [];
   }
   handleOnClose(e) {
-    console.debug(`websocket closed because: ${e.reason}.`), this.connecting = !1, this.ws = null;
+    console.info(`Madoi websocket connection closed because: ${e.reason}.`), this.connecting = !1, this.ws = null;
   }
   handleOnError(e) {
   }

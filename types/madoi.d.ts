@@ -191,8 +191,8 @@ interface DistributedConfig {
      */
     serialized: boolean;
 }
-export declare function Distributed(config?: DistributedConfig): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function ChangeState(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
+export declare function Distributed(config?: DistributedConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function ChangeState(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface GetStateConfig {
     /**
      * 最初の変更から最大何ミリ秒経過すると変更の取得と送信を行うか。default: 5000。
@@ -203,23 +203,23 @@ export interface GetStateConfig {
      */
     minInterval?: number;
 }
-export declare function GetState(config?: GetStateConfig): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
+export declare function GetState(config?: GetStateConfig): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface SetStateConfig {
 }
-export declare function SetState(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function HostOnly(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function BeforeEnterRoom(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function EnterRoomAllowed(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function EnterRoomDenied(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function LeaveRoomDone(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function RoomProfileUpdated(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function PeerEntered(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function PeerLeaved(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
-export declare function PeerProfileUpdated(): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
+export declare function SetState(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function HostOnly(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function BeforeEnterRoom(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function EnterRoomAllowed(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function EnterRoomDenied(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function LeaveRoomDone(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function RoomProfileUpdated(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerEntered(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerLeaved(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
+export declare function PeerProfileUpdated(): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export interface UserMessageArrivedConfig {
     type: string;
 }
-export declare function UserMessageArrived(type: string): <This, Args extends any[], Return>(target: (this: This, ...args: Args) => Return, _context: ClassMethodDecoratorContext) => (this: This, ...args: Args) => Return;
+export declare function UserMessageArrived(type: string): (target: any, name: string, _descriptor: PropertyDescriptor) => void;
 export type MethodAndConfigParam = {
     method: Function;
 } & MethodConfig;
