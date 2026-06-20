@@ -327,7 +327,7 @@ function addMethodConfig(config: MethodConfig){
 
 // Decorator
 export function ClassName(name: string){
-	return (target: any, _context: ClassDecoratorContext) => {
+	return (target: any) => {
 		target.madoiClassConfig_ = {className: name};
 	};
 }
