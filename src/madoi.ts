@@ -497,8 +497,15 @@ interface InitialPeerInfo<T extends Profile>{
 	profile: T;
 }
 
-export const PEERINFO_DEFAULT = {profile: {}};
-export const ROOMINFO_DEFAULT = {profile: {}};
+type ConstructorInfoArg<TP extends Profile, TR extends Profile> =
+	 KeyOf<TP> extends never ?
+	 	KeyOf<TR> extends never ?
+			[] | [peerInfo: InitialPeerInfo<TP>] | [peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>] :
+			[peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>]
+	 	:
+		KeyOf<TR> extends never ?
+			[peerInfo: InitialPeerInfo<TP>] | [peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>] :
+			[peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>];
 
 export class Madoi<TP extends Profile = {}, TR extends Profile = {}>
 extends TypedCustomEventTarget<Madoi<TP, TR>, {
@@ -544,12 +551,13 @@ extends TypedCustomEventTarget<Madoi<TP, TR>, {
 	private currentSenderId: string | null = null;
 
 	constructor(roomIdOrUrl: string, authToken: string, 
-			peerInfo: InitialPeerInfo<TP>,
-			roomInfo: InitialRoomInfo<TR>){
+			...info: ConstructorInfoArg<TP, TR>){
 		super();
 
-		this.selfPeer = {id: "unknown", order: -1, ...peerInfo};
-		this.room = {id: "unknown", spec: {maxLog: 1000}, ...roomInfo};
+		this.selfPeer = {id: "unknown", order: -1,
+			...((info.length > 0 ? info[0] : {profile: {}}) as InitialPeerInfo<TP>)};
+		this.room = {id: "unknown", spec: {maxLog: 1000},
+			...((info.length > 1 ? info[1] : {proeile: {}}) as InitialRoomInfo<TR>)};
 		this.interimQueue = new Array();
 		const sep = roomIdOrUrl.indexOf("?") != -1 ? "&" : "?";
 		if(roomIdOrUrl.match(/^wss?:\/\//)){
