@@ -182,7 +182,7 @@ type MethodConfig = {
 export interface DecoratedMethod extends FunctionConstructor {
     madoiMethodConfig_: MethodConfig;
 }
-export declare function ClassName(name: string): (target: any, _context: ClassDecoratorContext) => void;
+export declare function ClassName(name: string): (target: any) => void;
 interface DistributedConfig {
     /**
      * 実行の順序付けを行うかどうか。trueを指定すると、同じルームに参加しているアプリケーション間でメソッドが同時に実行されても、
@@ -264,12 +264,16 @@ interface InitialPeerInfo<T extends Profile> {
     id?: string;
     profile: T;
 }
-export declare const PEERINFO_DEFAULT: {
-    profile: {};
-};
-export declare const ROOMINFO_DEFAULT: {
-    profile: {};
-};
+type ConstructorInfoArg<TP extends Profile, TR extends Profile> = KeyOf<TP> extends never ? KeyOf<TR> extends never ? [
+] | [peerInfo: InitialPeerInfo<TP>] | [peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>] : [
+    peerInfo: InitialPeerInfo<TP>,
+    roomInfo: InitialRoomInfo<TR>
+] : KeyOf<TR> extends never ? [
+    peerInfo: InitialPeerInfo<TP>
+] | [peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>] : [
+    peerInfo: InitialPeerInfo<TP>,
+    roomInfo: InitialRoomInfo<TR>
+];
 export declare class Madoi<TP extends Profile = {}, TR extends Profile = {}> extends TypedCustomEventTarget<Madoi<TP, TR>, {
     enterRoomAllowed: EnterRoomAllowedDetail<TP, TR>;
     enterRoomDenied: EnterRoomDeniedDetail;
@@ -302,7 +306,7 @@ export declare class Madoi<TP extends Profile = {}, TR extends Profile = {}> ext
     private selfPeer;
     private otherPeers;
     private currentSenderId;
-    constructor(roomIdOrUrl: string, authToken: string, peerInfo: InitialPeerInfo<TP>, roomInfo: InitialRoomInfo<TR>);
+    constructor(roomIdOrUrl: string, authToken: string, ...info: ConstructorInfoArg<TP, TR>);
     getRoom(): RoomInfo<TR>;
     updateRoomProfile(name: KeyOf<TR>, value: ProfileValue): void;
     removeRoomProfile(name: KeyOf<TR>): void;
