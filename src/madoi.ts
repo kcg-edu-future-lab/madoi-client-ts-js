@@ -1,4 +1,4 @@
-import { CustomEventListenerOrEventListenerObject, KeyOf, TypedCustomEventTarget } from "tcet";
+import { type CustomEventListenerOrEventListenerObject, type KeyOf, TypedCustomEventTarget } from "tcet";
 
 // ---- message definitions ----
 export type CastType =
