@@ -1,8 +1,8 @@
-import { CustomEventListenerOrEventListenerObject, KeyOf, TypedCustomEventTarget } from "tcet";
+import { type CustomEventListenerOrEventListenerObject, type KeyOf, TypedCustomEventTarget } from "tcet";
 export type CastType = "UNICAST" | "MULTICAST" | "BROADCAST" | "SELFCAST" | "OTHERCAST" | "PEERTOSERVER" | "SERVERTOPEER";
 export interface Message {
     type: string;
-    sender: string;
+    sender?: string;
     castType: CastType;
     recipients: string[] | undefined;
     [name: string]: any;
@@ -20,7 +20,7 @@ export interface RoomInfo<T extends Profile> {
     profile: T;
 }
 export interface PeerInfo<T extends Profile> {
-    id: string;
+    id?: string;
     order: number;
     profile: T;
 }
@@ -242,7 +242,7 @@ export interface PeerLeavedDetail {
     peerId: string;
 }
 export interface PeerProfileUpdatedDetail<T extends Profile> {
-    peerId: string;
+    peerId?: string;
     updates?: Partial<T>;
     deletes?: KeyOf<T>[];
 }

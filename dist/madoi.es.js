@@ -171,7 +171,6 @@ class G extends O {
   currentSenderId = null;
   constructor(e, t, ...s) {
     super(), this.selfPeer = {
-      id: "unknown",
       order: -1,
       ...s.length > 0 ? s[0] : { profile: {} }
     }, this.room = {

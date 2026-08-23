@@ -8,7 +8,7 @@ export type CastType =
 
 export interface Message{
 	type: string;
-	sender: string;
+	sender?: string;
 	castType: CastType;
 	recipients: string[] | undefined;
 	[name: string]: any;
@@ -25,7 +25,7 @@ export interface RoomInfo<T extends Profile>{
 	profile: T;
 }
 export interface PeerInfo<T extends Profile>{
-	id: string;
+	id?: string;
 	order: number;
 	profile: T;
 }
@@ -473,7 +473,7 @@ export interface PeerLeavedDetail{
 	peerId: string;
 }
 export interface PeerProfileUpdatedDetail<T extends Profile>{
-	peerId: string;
+	peerId?: string;
 	updates?: Partial<T>;
 	deletes?: KeyOf<T>[];
 }
@@ -554,7 +554,7 @@ extends TypedCustomEventTarget<Madoi<TP, TR>, {
 			...info: ConstructorInfoArg<TP, TR>){
 		super();
 
-		this.selfPeer = {id: "unknown", order: -1,
+		this.selfPeer = {order: -1,
 			...((info.length > 0 ? info[0] : {profile: {}}) as InitialPeerInfo<TP>)};
 		this.room = {id: "unknown", spec: {maxLog: 1000},
 			...((info.length > 1 ? info[1] : {proeile: {}}) as InitialRoomInfo<TR>)};
@@ -695,7 +695,7 @@ extends TypedCustomEventTarget<Madoi<TP, TR>, {
 			this.room = msg.room;
 			this.selfPeer.order = msg.selfPeer.order;
 			for(const p of m.otherPeers){
-				this.otherPeers.set(p.id, p);
+				this.otherPeers.set(p.id!, p);
 			}
 			this.dispatchEvent("enterRoomAllowed", {detail: m});
 			if(msg.histories) for(const h of msg.histories){
