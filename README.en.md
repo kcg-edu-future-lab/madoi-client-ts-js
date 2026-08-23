@@ -1,15 +1,15 @@
 # madoi-client-ts-js
 
-[Japanese][[English](README.en.md)]
+[[Japanese](README.md)][English]
 
 A TypeScript/JavaScript Client library for <a href="https://github.com/kcg-edu-future-lab/madoi">Distributed Information Sharing Platform: Madoi</a>.
 
-<a href="https://github.com/kcg-edu-future-lab/madoi">分散情報共有基盤Madoi</a>のTypeScript/JavaScript用クライアントライブラリ。
+TypeScript/JavaScript library for <a href="https://github.com/kcg-edu-future-lab/madoi">Infrastructure for Distributed Information Sharing: Madoi</a>.
 
-Reactと組み合わせて使う場合は <a href="https://github.com/kcg-edu-future-lab/madoi-client-react">madoi-react</a> も参照してください。
+If you want to use this library combining with React, see <a href="https://github.com/kcg-edu-future-lab/madoi-client-react">madoi-react</a>.
 
 [![Current Release](https://img.shields.io/npm/v/madoi-client.svg)](https://www.npmjs.com/package/madoi-client)
-[![Licence](https://img.shields.io/github/license/kcg-edu-future-lab/madoi-client-ts-js)](https://github.com/kcg-edu-future-lab/madoi-client-ts-js/blob/master/LICENSE)
+[![Licence](https://img.shields.io/github/license/kcg-edu-future-lab/madoi-client-ts-js.svg)](https://github.com/kcg-edu-future-lab/madoi-client-ts-js/blob/master/LICENSE)
 
 ## Install
 
@@ -40,7 +40,7 @@ npm i madoi-client
 
 ### Sharing a function execution (Madoi.registerFunction)
 
-関数の実行をウェブアプリケーション間で共有する例を以下に示します。
+Here's an example of sharing function execution between web applications:
 
 ```ts
 import { Madoi } from 'madoi-client'
@@ -54,7 +54,7 @@ window.addEventListener("load", ()=>{
     counter1++;
     element1.innerHTML = `count is ${counter1}`
   });
-  element1.addEventListener('click', () => incrementCount());  // incrementCounter is executed at all applications joined to same room.
+  element1.addEventListener('click', () => incrementCount());  // incrementCounter is executed at all applications in the same room.
 });
 ```
 
@@ -75,7 +75,8 @@ class Counter{
     this.element = element;
   }
   // 状態を変更するメソッド
-  @ChangeState(broadcast='totalOrder' or 'unordered')
+  @Distributed()
+  @ChangeState()
   increment(){
     this.count++;
     this.element.innerHTML = `count is ${this.count}`;
