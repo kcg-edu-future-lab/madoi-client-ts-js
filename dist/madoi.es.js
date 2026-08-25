@@ -1,10 +1,8 @@
-class O extends EventTarget {
-  dispatchEvent(e, t) {
-    return super.dispatchEvent(
-      e instanceof Event ? e : new CustomEvent(e, t)
-    );
+var O = class extends EventTarget {
+  dispatchEvent(i, e) {
+    return super.dispatchEvent(i instanceof Event ? i : new CustomEvent(i, e));
   }
-}
+};
 const M = {
   sender: "__PEER__",
   castType: "PEERTOSERVER",
